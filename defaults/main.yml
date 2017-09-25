@@ -1,0 +1,30 @@
+
+# server
+# bamboo_server_url declares the server
+
+# agent
+bambooagent_service_name: bambooagent
+bambooagent_user: bambooagent
+bambooagent_group: bambooagent
+bambooagent_version: 5.11.1.1
+bambooagent_userhome: /home/bambooagent
+bambooagent_build_home: "{{ bambooagent_userhome }}/bamboo-agent-home"
+
+# Location of the capabilities file on the remote
+bambooagent_capability_file: "{{ bambooagent_build_home }}/bin/bamboo-capabilities.properties"
+
+# Bamboo jar file name
+bambooagent_jar_filename: atlassian-bamboo-agent-installer-{{ bambooagent_version }}.jar
+
+# Location of the Bamboo jar file on the remote
+bambooagent_jar_filename_full_path: "{{ bambooagent_userhome }}/{{bambooagent_jar_filename}}"
+
+
+# additional options passed to Java
+bambooagentjava_additional_options:
+  - "-Djava.awt.headless=true"
+  - "-Dbamboo.home={{ bambooagent_build_home }}"
+
+# additional environment variables set before running the bamboo agent (eg. CUDA_VISIBLE_DEVICES)
+# THIS SHOULD BE A LIST
+bambooagent_additional_environment: []

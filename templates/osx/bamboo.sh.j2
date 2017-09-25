@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export PATH=/Library/Developer/CommandLineTools/usr/bin/:$PATH
+export JAVA_HOME=`/usr/libexec/java_home`
+exec {{ bambooagent_additional_environment | join(" ") }} java {{ bambooagentjava_additional_options | join(" ") }} -jar {{ bambooagent_jar_filename_full_path }} {{ bamboo_server_url }}

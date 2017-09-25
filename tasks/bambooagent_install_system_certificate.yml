@@ -1,0 +1,47 @@
+# Install the certificate on the machine
+
+#    
+# OSX
+#
+- block:
+  - name: copy the certificate to remote
+    copy: 
+      src="{{ item.file }}"
+      dest="/tmp/{{ item.file | basename }}"
+      owner={{ bambooagent_user }} 
+      group={{ bambooagent_user }} 
+      mode=0644
+    with_items: "{{ certificate_files }}"
+      
+
+  - name: Installing the certificate on the keystore
+    command: security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /tmp/{{ item.file | basename }}
+    with_items: "{{ certificate_files }}"
+    
+  when: ansible_distribution == "MacOSX"
+
+  always:
+    - file: 
+        path=/tmp/{{ item.file | basename }}
+        state=absent
+      with_items: "{{ certificate_files }}"
+
+    
+
+#    
+# Ubuntu
+#
+- block:
+  - name: copy the certificate to remote
+    copy: 
+      src="{{ item.file }}"
+      dest=/usr/local/share/ca-certificates/{{ item.file | basename }}
+      owner=root
+      group=root 
+      mode=0644
+    with_items: "{{ certificate_files }}"
+
+  - name: Register the certificate
+    command: update-ca-certificates
+    
+  when: ansible_distribution == "Ubuntu"

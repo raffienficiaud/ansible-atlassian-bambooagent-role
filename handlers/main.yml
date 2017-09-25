@@ -1,0 +1,11 @@
+---
+- name: register init.d
+  command: update-rc.d atlassian-bambooagent defaults
+
+- name: restart bambooagent
+  shell: "launchctl unload -w /Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist && launchctl load -w /Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist"
+  when: ansible_distribution=="MacOSX"
+
+- name: restart bambooagent
+  service: name=atlassian-bambooagent state=started enabled=yes
+  when: ansible_distribution=="Ubuntu"

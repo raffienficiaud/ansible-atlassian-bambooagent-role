@@ -1,0 +1,120 @@
+# Creates the bamboo agent
+
+- block:
+  - name: '[BAMBOOAGENT] Group "{{ bambooagent_group }}"'
+    group: name={{ bambooagent_group }} state=present
+    when: ansible_os_family!="Windows"
+
+  - name: '[BAMBOOAGENT] Group "{{ bambooagent_group }}"'
+    win_group: name={{ bambooagent_group }} state=present
+    when: ansible_os_family=="Windows"
+
+
+# Creates the user / OSX-Ubuntu
+- block:
+  - getent:
+      database: passwd
+      key: "{{ bambooagent_user }}"
+      split: ':'
+    register: check_bambooagent
+    when: ansible_distribution=="Ubuntu"
+  
+  - debug: msg="{{ getent_passwd[bambooagent_user][4] }}"
+    when: ansible_distribution=="Ubuntu"
+  
+  - name: '[BAMBOOAGENT] Creating non existing user "{{ bambooagent_user }}"'
+    user:
+      name: "{{ bambooagent_user }}"
+      comment: "Bamboo agent"
+      state: present
+      group: "{{ bambooagent_group }}"
+      home: "{{ bambooagent_userhome }}"
+      createhome: yes
+    when: (check_bambooagent|failed) or (ansible_distribution!="Ubuntu")
+  
+  - name: '[BAMBOOAGENT] Ensuring home of "{{ bambooagent_user }}" exists'
+    file:
+      path: "{{ bambooagent_userhome }}"
+      state: directory
+      owner: "{{ bambooagent_user }}"
+      group: "{{ bambooagent_group }}"
+    when: (check_bambooagent|failed) and (ansible_distribution=="Ubuntu")
+  
+  - name: '[BAMBOOAGENT] Ensuring home of "{{ bambooagent_user }}" exists (2)'
+    file:
+      path: "{{ getent_passwd[bambooagent_user][4] }}"
+      state: directory
+      owner: "{{ bambooagent_user }}"
+      group: "{{ bambooagent_group }}"
+    when: (check_bambooagent|succeeded) and (ansible_distribution=="Ubuntu")
+
+  when: ansible_os_family!="Windows"
+
+# Creates the user / windows
+- block:
+  - name: '[WINDOWS] finding the installation path'
+    set_fact:
+      user_pass: "{% for _ in range(10) %}{{62|random}}{% endfor %}"
+      
+  - debug: msg="{{ user_pass }}"
+
+  - name: '[WINDOWS] create user "{{ bambooagent_user }}"'
+    win_user:
+      name: "{{ bambooagent_user }}"
+      fullname: "Bamboo agent user"
+      user_cannot_change_password: yes
+      password_never_expires: yes
+      state: present
+      groups:
+        - Users
+        - "{{ bambooagent_group }}"
+      
+  when: ansible_os_family=="Windows"
+  
+#
+# hides the bamboo agent from the login screen
+#
+
+- name: Hides the user from the login screen OSX
+  command: defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add "{{ bambooagent_user }}"
+  when: ansible_distribution=="MacOSX"
+
+- name: Creates the login hidding file
+  file:
+    path: "/var/lib/AccountsService/users/{{ bambooagent_user }}"
+    state: touch
+    owner: root
+    group: root
+    mode: "u+rw,g+r,o+r"
+  when: ansible_distribution=="Ubuntu"
+
+- name: Hides the user from the login screen Ubuntu
+  ini_file:
+    dest=/var/lib/AccountsService/users/{{ bambooagent_user }}
+    section=User
+    option=SystemAccount
+    value=true
+    backup=yes
+  when: ansible_distribution=="Ubuntu"
+
+
+#
+# do not let the Bamboo agent to modify its home folder
+#
+- name: "Prevents the bamboo agent to modify its home folder"
+  file:
+    path: "{{ bambooagent_userhome }}"
+    state: directory
+    owner: "{{ bambooagent_user }}"
+    group: "{{ bambooagent_group }}"
+    mode: "u+rx,g+rx"
+  when: ((check_bambooagent|failed) or (ansible_distribution!="Ubuntu")) and False
+
+- name: "Prevents the bamboo agent to modify its home folder 2"
+  file:
+    path: "{{ getent_passwd[bambooagent_user][4] }}"
+    state: directory
+    owner: "{{ bambooagent_user }}"
+    group: "{{ bambooagent_group }}"
+    mode: "u+rx,g+rx"
+  when: ((check_bambooagent|succeeded) and (ansible_distribution=="Ubuntu")) and False

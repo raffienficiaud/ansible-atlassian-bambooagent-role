@@ -1,0 +1,14 @@
+
+
+- name: '[BAMBOO] capability folder creation'
+  file:
+     path="{{ bambooagent_capability_file | dirname }}"
+     state=directory
+     owner="{{ bambooagent_user }}"
+
+- name: '[BAMBOO] capability file creation'
+  file:
+     path="{{ bambooagent_capability_file }}"
+     state=touch
+     mode=444
+    

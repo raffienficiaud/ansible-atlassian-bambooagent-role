@@ -1,0 +1,27 @@
+---
+
+# This file configures the bamboo agent
+
+- include: check_vars.yml
+  tags:
+    - bambooagent:checks
+    - checks
+
+- include: bambooagent_create_user.yml
+  tags:
+    - bambooagent:installation
+
+# Installs the certificates, if any, on the system
+- include: bambooagent_install_system_certificate.yml
+  tags:
+    - bambooagent:installation
+  when: "{{ certificate_files }}"
+
+- include: bambooagent_install_starter.yml
+  tags:
+    - bambooagent:installation
+
+- include: bambooagent_configure_capabilities.yml
+  tag:
+    - bambooagent:configuration
+   

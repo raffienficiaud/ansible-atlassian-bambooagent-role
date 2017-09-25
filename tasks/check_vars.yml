@@ -1,0 +1,18 @@
+#
+# Checking that required variables are set
+#
+
+- name: '[BAMBOO] Checking that required variables are set'
+  fail: msg="{{ item }} is not defined"
+  when: not {{ item }}
+  with_items:
+    - bambooagent_user
+    - bambooagent_group
+    - bamboo_server_url
+    - bambooagent_userhome
+    - bambooagent_service_name
+    - bambooagent_version
+    - bambooagent_build_home
+    - bambooagent_capability_file
+    - bambooagent_jar_filename
+    - bambooagent_jar_filename_full_path

@@ -1,0 +1,84 @@
+# Installs the startup procedure for the bambooagent
+
+- debug: var=bamboo_java_jar_file
+- debug: msg=bamboo_java_jar_file
+
+# Copies the .jar
+- name: '[BAMBOO] Copy bamboo jar into destination from existing file'
+  copy:
+    src="{{ bamboo_java_jar_file }}"
+    dest="{{ bambooagent_userhome }}"
+  when: "'{{ bamboo_java_jar_file | default() }}' != ''"
+
+- name: '[BAMBOO] Copy bamboo jar into destination from server'
+  get_url:
+    url="{{ bamboo_server_url }}/agentInstaller/bamboo_java_jar_file }}"
+    dest="{{ bambooagent_userhome }}"
+    validate_certs=True
+  when: "'{{ bamboo_java_jar_file | default() }}' == ''"
+
+
+
+#
+# Ubuntu startup configuration
+
+- block:
+  - name: Installing the init.d startup
+    template: >
+      src=ubuntu/etc/init.d/atlassian-bambooagent.j2
+      dest=/etc/init.d/atlassian-{{ bambooagent_service_name }}
+      owner=root
+      group=root
+      mode=0755
+
+  - name: Creating the log file
+    file:
+      path=/var/log/{{ bambooagent_service_name }}.log
+      state=touch
+      owner=root
+
+    notify:
+      - register init.d
+      - restart bambooagent
+
+  when: ansible_distribution == 'Ubuntu'
+
+  rescue:
+    - debug:
+        msg="Error caught during the installation of the bamboo startup"
+    - file:
+        path=/etc/init.d/atlassian-{{ bambooagent_service_name }}
+        state=absent
+    - command: /bin/false
+
+
+#
+# OSX startup configuration
+
+- block:
+  - name: Installing the plist
+    template: >
+      src=osx/Library/LaunchDaemons/com.atlassian.bambooagent.plist.j2
+      dest=/Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist
+      owner=root
+      group=admin
+      mode=0644
+
+  - name: Installing the startup script
+    template: >
+      src=osx/bamboo.sh.j2
+      dest={{ bambooagent_userhome }}/bamboo.sh
+      owner={{ bambooagent_user }}
+      group={{ bambooagent_user }}
+      mode=0755
+
+    notify:
+      - restart bambooagent
+
+  when: ansible_distribution=="MacOSX"
+
+  rescue:
+    - debug: msg='Error caught during the installation of the bamboo startup'
+    - file: path=/Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist state=absent
+    - file: path={{ bambooagent_userhome }}/bamboo.sh state=absent
+    - command: /bin/false
