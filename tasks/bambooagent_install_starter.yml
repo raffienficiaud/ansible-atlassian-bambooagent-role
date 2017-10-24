@@ -8,14 +8,14 @@
   copy:
     src="{{ bamboo_java_jar_file }}"
     dest="{{ bambooagent_userhome }}"
-  when: "'{{ bamboo_java_jar_file | default() }}' != ''"
+  when: (bamboo_java_jar_file | default()) != ''
 
 - name: '[BAMBOO] Copy bamboo jar into destination from server'
   get_url:
     url="{{ bamboo_server_url }}/agentInstaller/bamboo_java_jar_file }}"
     dest="{{ bambooagent_userhome }}"
     validate_certs=True
-  when: "'{{ bamboo_java_jar_file | default() }}' == ''"
+  when: (bamboo_java_jar_file | default()) == ''
 
 
 

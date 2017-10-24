@@ -48,5 +48,4 @@ galaxy_info:
   - agent
   - installation
 
-dependencies:
-  - raffienficiaud.atlassian-bambooagent-oracle-java-role
+dependencies: []

@@ -4,7 +4,7 @@
 
 - name: '[BAMBOO] Checking that required variables are set'
   fail: msg="{{ item }} is not defined"
-  when: not {{ item }}
+  when: item is undefined
   with_items:
     - bambooagent_user
     - bambooagent_group
