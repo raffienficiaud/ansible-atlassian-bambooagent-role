@@ -1,22 +1,40 @@
 # Installs the startup procedure for the bambooagent
 
-- debug: var=bamboo_java_jar_file
-- debug: msg=bamboo_java_jar_file
-
 # Copies the .jar
 - name: '[BAMBOO] Copy bamboo jar into destination from existing file'
   copy:
     src="{{ bamboo_java_jar_file }}"
     dest="{{ bambooagent_userhome }}"
-  when: (bamboo_java_jar_file | default()) != ''
+  when: 
+  - (bamboo_java_jar_file | default()) != ''
+  - ansible_os_family!="Windows"
 
+- name: '[BAMBOO][WIN] Copy bamboo jar into destination from existing file'
+  win_copy:
+    src="{{ bamboo_java_jar_file }}"
+    dest="{{ bambooagent_userhome }}/" # last '/' is important
+  when: 
+  - (bamboo_java_jar_file | default()) != ''
+  - ansible_os_family=="Windows"
+
+# Fetches the .jar
 - name: '[BAMBOO] Copy bamboo jar into destination from server'
   get_url:
-    url="{{ bamboo_server_url }}/agentInstaller/bamboo_java_jar_file }}"
+    url="{{ bamboo_server_url }}/agentInstaller/{{ bamboo_java_jar_file | basename }}"
     dest="{{ bambooagent_userhome }}"
     validate_certs=True
-  when: (bamboo_java_jar_file | default()) == ''
+  when: 
+  - (bamboo_java_jar_file | default()) == ''
+  - ansible_os_family!="Windows"
 
+- name: '[BAMBOO][WIN] Copy bamboo jar into destination from server'
+  win_get_url:
+    url="{{ bamboo_server_url }}/agentInstaller/{{ bamboo_java_jar_file | basename }}"
+    dest="{{ bambooagent_userhome }}/"
+    validate_certs=True
+  when: 
+  - (bamboo_java_jar_file | default()) == ''
+  - ansible_os_family=="Windows"
 
 
 #
@@ -82,3 +100,44 @@
     - file: path=/Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist state=absent
     - file: path={{ bambooagent_userhome }}/bamboo.sh state=absent
     - command: /bin/false
+
+#
+# Windows startup configuration
+
+- block:
+  - name: "[BAMBOO][WIN] stopping previous service 'bamboo-remote-agent'"
+    win_service:
+      name: bamboo-remote-agent
+      state: stopped
+    ignore_errors: True
+
+  - name: "[BAMBOO][WIN] removing previous service 'bamboo-remote-agent'"
+    win_service:
+      name: bamboo-remote-agent
+      state: absent
+
+  - name: "[BAMBOO][WIN] installing the service"
+    win_command: "java -Dbamboo.home=\"{{ bambooagent_build_home }}\" -jar {{ bambooagent_userhome }}/{{ bamboo_java_jar_file | basename }} {{ bamboo_server_url }}/agentServer installntservice"
+    notify:
+      - restart bambooagent
+
+  - name: "[BAMBOO][WIN] fixing build folder permissions"
+    win_acl:
+      path: "{{ bambooagent_build_home }}"
+      user: "{{ bambooagent_user }}"
+      rights: FullControl
+      type: allow
+      state: present
+
+  - name: "[BAMBOO][WIN] configuring the service 'bamboo-remote-agent'"
+    win_service:
+      name: bamboo-remote-agent
+      start_mode: auto
+      username: ".\\{{ bambooagent_user }}"
+      password: "{{ lookup('password', 'windows/' + inventory_hostname + '/bambooagent length=15') }}"
+
+  when: ansible_os_family=="Windows"
+
+  rescue:
+    - debug: msg='Error caught during the installation of the bamboo startup'
+    - win_command: "/bin/false"

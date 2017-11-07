@@ -5,9 +5,9 @@
 # agent
 bambooagent_service_name: bambooagent
 bambooagent_user: bambooagent
-bambooagent_group: bambooagent
+bambooagent_group: bambooagent_grp
 bambooagent_version: 5.11.1.1
-bambooagent_userhome: /home/bambooagent
+bambooagent_userhome: "/home/{{ bambooagent_user }}"
 bambooagent_build_home: "{{ bambooagent_userhome }}/bamboo-agent-home"
 
 # Location of the capabilities file on the remote

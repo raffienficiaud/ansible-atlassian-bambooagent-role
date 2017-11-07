@@ -5,10 +5,41 @@
      path="{{ bambooagent_capability_file | dirname }}"
      state=directory
      owner="{{ bambooagent_user }}"
+  when: 
+  - ansible_os_family!="Windows"
+
+- name: '[BAMBOO] capability folder creation'
+  win_file:
+     path="{{ bambooagent_capability_file | dirname }}"
+     state=directory
+     owner="{{ bambooagent_user }}"
+  when: 
+  - ansible_os_family=="Windows"
+
+- name: '[BAMBOO] capability file creation'
+  win_file:
+     path: "{{ bambooagent_capability_file }}"
+     state: touch
+     owner: "{{ bambooagent_user }}"
+  when: 
+  - ansible_os_family=="Windows"
+
 
 - name: '[BAMBOO] capability file creation'
   file:
      path="{{ bambooagent_capability_file }}"
      state=touch
      mode=444
+  when: 
+  - ansible_os_family!="Windows"
+
+- name: '[BAMBOO] capability file creation'
+  win_acl:
+     path: "{{ bambooagent_capability_file }}"
+     user: "{{ bambooagent_user }}"
+     rights: Read, Write
+     state: present
+     type: allow
+  when: 
+  - ansible_os_family=="Windows"
     

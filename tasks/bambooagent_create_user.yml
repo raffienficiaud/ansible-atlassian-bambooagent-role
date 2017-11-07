@@ -52,11 +52,6 @@
 
 # Creates the user / windows
 - block:
-  - name: '[WINDOWS] finding the installation path'
-    set_fact:
-      user_pass: "{% for _ in range(10) %}{{62|random}}{% endfor %}"
-      
-  - debug: msg="{{ user_pass }}"
 
   - name: '[WINDOWS] create user "{{ bambooagent_user }}"'
     win_user:
@@ -65,10 +60,26 @@
       user_cannot_change_password: yes
       password_never_expires: yes
       state: present
-      groups:
-        - Users
-        - "{{ bambooagent_group }}"
+      password: "{{ lookup('password', 'windows/' + inventory_hostname + '/bambooagent length=15') }}"
+      groups: 
+      - "{{ bambooagent_group }}"
+    register: win_bamboo_user_reg
+
+  - name: add account to Log on as a service
+    win_user_right:
+      name: SeServiceLogonRight
+      users:
+      - "{{ bambooagent_user }}"
+      action: add
+
+  - debug:
+      var: win_bamboo_user_reg
       
+  - name: '[WINDOWS] create user "{{ bambooagent_user }}" home'
+    win_file:
+      path: "{{ bambooagent_userhome }}"
+      state: directory
+
   when: ansible_os_family=="Windows"
   
 #
