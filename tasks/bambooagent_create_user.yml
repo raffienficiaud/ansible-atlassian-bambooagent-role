@@ -53,7 +53,7 @@
 # Creates the user / windows
 - block:
 
-  - name: '[WINDOWS] create user "{{ bambooagent_user }}"'
+  - name: '[BAMBOOAGENT][WIN] create user "{{ bambooagent_user }}"'
     win_user:
       name: "{{ bambooagent_user }}"
       fullname: "Bamboo agent user"
@@ -65,7 +65,7 @@
       - "{{ bambooagent_group }}"
     register: win_bamboo_user_reg
 
-  - name: add account to Log on as a service
+  - name: '[BAMBOOAGENT][WIN] add account to Log on as a service'
     win_user_right:
       name: SeServiceLogonRight
       users:
@@ -75,10 +75,18 @@
   - debug:
       var: win_bamboo_user_reg
       
-  - name: '[WINDOWS] create user "{{ bambooagent_user }}" home'
+  - name: '[BAMBOOAGENT][WIN] create user "{{ bambooagent_user }}" home'
     win_file:
       path: "{{ bambooagent_userhome }}"
       state: directory
+
+  # for the current user only
+  #- name: '[BAMBOOAGENT][WIN] adding TEMP'
+  #  win_environment:
+  #    state: present
+  #    name: TEMP
+  #    value: '{{ bambooagent_userhome }}/tmp-bamboo'
+  #    level: user
 
   when: ansible_os_family=="Windows"
   

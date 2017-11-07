@@ -94,7 +94,7 @@ Example Playbook
 
   vars:
     - program_location: /folder/containing/installers/
-    - bamboo_server_url: https://my.local.network/bamboo/agentServer
+    - bamboo_server_url: https://my.local.network/bamboo/
 
     # Those are the certificates to install to make Java work with the bamboo server
     - certificate_files:

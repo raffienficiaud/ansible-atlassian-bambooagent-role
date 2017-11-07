@@ -34,7 +34,7 @@ do_start()
             {{ bambooagent_additional_environment | join(" ") }} \
             JAVA_HOME=$JAVA_HOME \
             PATH=$JAVA_HOME/bin:{{ bambooagent_userhome }}/usr/local/bin:$PATH \
-            $JAVA_HOME/bin/java {{ bambooagentjava_additional_options | join(" ") }} -jar {{ bambooagent_jar_filename_full_path }} {{ bamboo_server_url }} >>$LOGFILE 2>&1 </dev/null &
+            $JAVA_HOME/bin/java {{ bambooagentjava_additional_options | join(" ") }} -jar {{ bambooagent_jar_filename_full_path }} {{ bamboo_server_url }}/agentServer/ >>$LOGFILE 2>&1 </dev/null &
 }
 
 do_stop()

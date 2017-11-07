@@ -20,7 +20,7 @@
 # Fetches the .jar
 - name: '[BAMBOO] Copy bamboo jar into destination from server'
   get_url:
-    url="{{ bamboo_server_url }}/agentInstaller/{{ bamboo_java_jar_file | basename }}"
+    url="{{ bamboo_server_url }}/agentServer/agentInstaller/{{ bamboo_java_jar_file | basename }}"
     dest="{{ bambooagent_userhome }}"
     validate_certs=True
   when: 
@@ -29,7 +29,7 @@
 
 - name: '[BAMBOO][WIN] Copy bamboo jar into destination from server'
   win_get_url:
-    url="{{ bamboo_server_url }}/agentInstaller/{{ bamboo_java_jar_file | basename }}"
+    url="{{ bamboo_server_url }}/agentServer/agentInstaller/{{ bamboo_java_jar_file | basename }}"
     dest="{{ bambooagent_userhome }}/"
     validate_certs=True
   when: 
@@ -116,8 +116,13 @@
       name: bamboo-remote-agent
       state: absent
 
+  - name: "[BAMBOO][WIN] create temporary folder"
+    win_file:
+      path: "{{ bambooagent_build_home }}/tmpdir"
+      state: directory
+
   - name: "[BAMBOO][WIN] installing the service"
-    win_command: "java -Dbamboo.home=\"{{ bambooagent_build_home }}\" -jar {{ bambooagent_userhome }}/{{ bamboo_java_jar_file | basename }} {{ bamboo_server_url }}/agentServer installntservice"
+    win_command: "java -Djava.io.tmpdir=\"{{ bambooagent_build_home }}/tmpdir\" -Dbamboo.home=\"{{ bambooagent_build_home }}\" -jar {{ bambooagent_userhome }}/{{ bamboo_java_jar_file | basename }} {{ bamboo_server_url }}/agentServer/ installntservice"
     notify:
       - restart bambooagent
 
