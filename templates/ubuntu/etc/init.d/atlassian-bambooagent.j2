@@ -11,7 +11,7 @@
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Atlassian {{ bambooagent_service_name }} {{ bambooagent_version }}"
-APP_HOME="{{ bambooagent_build_home }}"
+APP_HOME="{{ bambooagent_agent_root }}"
 RUNAS="{{ bambooagent_user }}"
 SCRIPTNAME=/etc/init.d/atlassian-{{ bambooagent_service_name }}
 LOGFILE="/var/log/{{ bambooagent_service_name }}.log"
@@ -33,7 +33,7 @@ do_start()
         sudo -H -u "$RUNAS" \
             {{ bambooagent_additional_environment | join(" ") }} \
             JAVA_HOME=$JAVA_HOME \
-            PATH=$JAVA_HOME/bin:{{ bambooagent_userhome }}/usr/local/bin:$PATH \
+            PATH=$JAVA_HOME/bin:{{ bambooagent_install_root }}/usr/local/bin:$PATH \
             $JAVA_HOME/bin/java {{ bambooagentjava_additional_options | join(" ") }} -jar {{ bambooagent_jar_filename_full_path }} {{ bamboo_server_url }}/agentServer/ >>$LOGFILE 2>&1 </dev/null &
 }
 
@@ -44,8 +44,8 @@ do_stop()
         sudo -H -u "$RUNAS" \
             {{ bambooagent_additional_environment | join(" ") }} \
             JAVA_HOME=$JAVA_HOME \
-            PATH=$JAVA_HOME/bin:{{ bambooagent_userhome }}/usr/local/bin:$PATH \
-            {{ bambooagent_build_home }}/bin/bamboo-agent.sh stop >>$LOGFILE 2>&1 </dev/null &
+            PATH=$JAVA_HOME/bin:{{ bambooagent_install_root }}/usr/local/bin:$PATH \
+            {{ bambooagent_agent_root }}/bin/bamboo-agent.sh stop >>$LOGFILE 2>&1 </dev/null &
 
         sudo pkill -u $RUNAS ;
 }

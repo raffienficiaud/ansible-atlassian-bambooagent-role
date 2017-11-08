@@ -33,14 +33,14 @@ The following variable are defined and can be overridden:
 | `bambooagent_user` | bambooagent | the user running the bamboo agent|
 | `bambooagent_group`| bambooagent_grp | the group which the bamboo agent user is in|
 | `bambooagent_service_name` | bambooagent| the name of the service running the bamboo agent. This will appear as the service for starup-shutdown admin commands|
-| `bambooagent_userhome`| `/home/bambooagent` | the home folder of the bamboo agent user|
-| `bambooagent_build_home`| `{{ bambooagent_userhome }}/bamboo-agent-home` | the build folder |
+| `bambooagent_install_root`| `/home/bambooagent` | the root folder under which all the programs/scripts of the agent (starters, other local programs) will be installed. This can be the home folder of the agent, althouth it will contain the build folder under `bambooagent_agent_root`.|
+| `bambooagent_agent_root`| `{{ bambooagent_install_root }}/bamboo-agent-home` | the root folder for the files specific for running the bamboo agent (the .jar file, wrapper, etc).|
 | `bambooagent_version` | 5.11.1.1 | the version of the agent |
 | `bamboo_java_jar_file` | "" (empty string) | The final `.jar` of the Bamboo ageng launcher. If empty (default), the role will attempt to fetch this file from the Bamboo server directly.|
 | `bambooagent_jar_filename` | `atlassian-bamboo-agent-installer-{{ bambooagent_version }}.jar` | the jar file of the agent |
-| `bambooagent_jar_filename_full_path`| `{{ bambooagent_userhome }}/{{bambooagent_jar_filename}}` | the full path location of the jar file **on the remote** |
-| `bambooagent_capability_file`| `{{ bambooagent_build_home }}/bin/bamboo-capabilities.properties` | the location of the capabilities file on the remote |
-| `bambooagentjava_additional_options`| <ul><li>`-Djava.awt.headless=true`</li><li>`-Dbamboo.home={{ bambooagent_build_home }}`</li></ul> |additional options passed to the Java virtual machine. This should be a list|
+| `bambooagent_jar_filename_full_path`| `{{ bambooagent_install_root }}/{{bambooagent_jar_filename}}` | the full path location of the jar file **on the remote** |
+| `bambooagent_capability_file`| `{{ bambooagent_agent_root }}/bin/bamboo-capabilities.properties` | the location of the capabilities file on the remote |
+| `bambooagentjava_additional_options`| <ul><li>`-Djava.awt.headless=true`</li><li>`-Dbamboo.home={{ bambooagent_agent_root }}`</li></ul> |additional options passed to the Java virtual machine. This should be a list|
 | `bambooagent_additional_environment`| `[]` (empty list) | additional environment variables set before running the bamboo agent (eg. `CUDA_VISIBLE_DEVICES=1`). This should be a list |
 
 ### Java
@@ -102,7 +102,7 @@ Example Playbook
         file: "{{program_location}}/common/my.certificate.authority.crt"
 
     # the home folder of the Bamboo agent (for examples, should be different on Linux/OSX/etc)
-    - bambooagent_userhome: "/Users/bambooagent"
+    - bambooagent_install_root: "/somebigdrive/bambooagent"
 
     # The operating system that will be declared as a capability
     # This is also used for locating the installation files and fixing the paths on the fly
@@ -142,8 +142,6 @@ Example Playbook
       cmake_installation: "{{ bamboo_cmake_installation }}"
 
   tasks:
-
-
     # Declares default capabilities (example)
     - name: '[BAMBOO] default capabilities'
       set_fact:

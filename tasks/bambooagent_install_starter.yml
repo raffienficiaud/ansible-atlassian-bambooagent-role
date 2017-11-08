@@ -4,7 +4,7 @@
 - name: '[BAMBOO] Copy bamboo jar into destination from existing file'
   copy:
     src="{{ bamboo_java_jar_file }}"
-    dest="{{ bambooagent_userhome }}"
+    dest="{{ bambooagent_install_root }}"
   when: 
   - (bamboo_java_jar_file | default()) != ''
   - ansible_os_family!="Windows"
@@ -12,7 +12,7 @@
 - name: '[BAMBOO][WIN] Copy bamboo jar into destination from existing file'
   win_copy:
     src="{{ bamboo_java_jar_file }}"
-    dest="{{ bambooagent_userhome }}/" # last '/' is important
+    dest="{{ bambooagent_install_root }}/" # last '/' is important
   when: 
   - (bamboo_java_jar_file | default()) != ''
   - ansible_os_family=="Windows"
@@ -21,7 +21,7 @@
 - name: '[BAMBOO] Copy bamboo jar into destination from server'
   get_url:
     url="{{ bamboo_server_url }}/agentServer/agentInstaller/{{ bamboo_java_jar_file | basename }}"
-    dest="{{ bambooagent_userhome }}"
+    dest="{{ bambooagent_install_root }}"
     validate_certs=True
   when: 
   - (bamboo_java_jar_file | default()) == ''
@@ -30,7 +30,7 @@
 - name: '[BAMBOO][WIN] Copy bamboo jar into destination from server'
   win_get_url:
     url="{{ bamboo_server_url }}/agentServer/agentInstaller/{{ bamboo_java_jar_file | basename }}"
-    dest="{{ bambooagent_userhome }}/"
+    dest="{{ bambooagent_install_root }}/"
     validate_certs=True
   when: 
   - (bamboo_java_jar_file | default()) == ''
@@ -85,7 +85,7 @@
   - name: Installing the startup script
     template: >
       src=osx/bamboo.sh.j2
-      dest={{ bambooagent_userhome }}/bamboo.sh
+      dest={{ bambooagent_install_root }}/bamboo.sh
       owner={{ bambooagent_user }}
       group={{ bambooagent_user }}
       mode=0755
@@ -98,7 +98,7 @@
   rescue:
     - debug: msg='Error caught during the installation of the bamboo startup'
     - file: path=/Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist state=absent
-    - file: path={{ bambooagent_userhome }}/bamboo.sh state=absent
+    - file: path={{ bambooagent_install_root }}/bamboo.sh state=absent
     - command: /bin/false
 
 #
@@ -118,17 +118,17 @@
 
   - name: "[BAMBOO][WIN] create temporary folder"
     win_file:
-      path: "{{ bambooagent_build_home }}/tmpdir"
+      path: "{{ bambooagent_agent_root }}/tmpdir"
       state: directory
 
   - name: "[BAMBOO][WIN] installing the service"
-    win_command: "java -Djava.io.tmpdir=\"{{ bambooagent_build_home }}/tmpdir\" -Dbamboo.home=\"{{ bambooagent_build_home }}\" -jar {{ bambooagent_userhome }}/{{ bamboo_java_jar_file | basename }} {{ bamboo_server_url }}/agentServer/ installntservice"
+    win_command: "java -Djava.io.tmpdir=\"{{ bambooagent_agent_root }}/tmpdir\" -Dbamboo.home=\"{{ bambooagent_agent_root }}\" -jar {{ bambooagent_install_root }}/{{ bamboo_java_jar_file | basename }} {{ bamboo_server_url }}/agentServer/ installntservice"
     notify:
       - restart bambooagent
 
   - name: "[BAMBOO][WIN] fixing build folder permissions"
     win_acl:
-      path: "{{ bambooagent_build_home }}"
+      path: "{{ bambooagent_agent_root }}"
       user: "{{ bambooagent_user }}"
       rights: FullControl
       type: allow

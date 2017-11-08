@@ -9,10 +9,10 @@
     - bambooagent_user
     - bambooagent_group
     - bamboo_server_url
-    - bambooagent_userhome
+    - bambooagent_install_root
     - bambooagent_service_name
     - bambooagent_version
-    - bambooagent_build_home
+    - bambooagent_agent_root
     - bambooagent_capability_file
     - bambooagent_jar_filename
     - bambooagent_jar_filename_full_path

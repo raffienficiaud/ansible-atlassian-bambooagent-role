@@ -1,4 +1,4 @@
-# Creates the bamboo agent
+# Creates the bamboo agent user and group, and its associated folders
 
 - block:
   - name: '[BAMBOOAGENT] Group "{{ bambooagent_group }}"'
@@ -9,9 +9,12 @@
     win_group: name={{ bambooagent_group }} state=present
     when: ansible_os_family=="Windows"
 
-
+#
 # Creates the user / OSX-Ubuntu
 - block:
+
+  # this is a bit particular to my own setup as the bambooagent is an LDAP user
+  # but we still want the agent to have a home folder
   - getent:
       database: passwd
       key: "{{ bambooagent_user }}"
@@ -22,34 +25,39 @@
   - debug: msg="{{ getent_passwd[bambooagent_user][4] }}"
     when: ansible_distribution=="Ubuntu"
   
-  - name: '[BAMBOOAGENT] Creating non existing user "{{ bambooagent_user }}"'
-    user:
-      name: "{{ bambooagent_user }}"
-      comment: "Bamboo agent"
-      state: present
-      group: "{{ bambooagent_group }}"
-      home: "{{ bambooagent_userhome }}"
-      createhome: yes
-    when: (check_bambooagent|failed) or (ansible_distribution!="Ubuntu")
-  
-  - name: '[BAMBOOAGENT] Ensuring home of "{{ bambooagent_user }}" exists'
-    file:
-      path: "{{ bambooagent_userhome }}"
-      state: directory
-      owner: "{{ bambooagent_user }}"
-      group: "{{ bambooagent_group }}"
-    when: (check_bambooagent|failed) and (ansible_distribution=="Ubuntu")
-  
   - name: '[BAMBOOAGENT] Ensuring home of "{{ bambooagent_user }}" exists (2)'
     file:
       path: "{{ getent_passwd[bambooagent_user][4] }}"
       state: directory
       owner: "{{ bambooagent_user }}"
       group: "{{ bambooagent_group }}"
-    when: (check_bambooagent|succeeded) and (ansible_distribution=="Ubuntu")
+    when: 
+      - (check_bambooagent|succeeded) 
+      - (ansible_distribution=="Ubuntu")
+
+  - name: '[BAMBOOAGENT] Creating non-existing user "{{ bambooagent_user }}"'
+    user:
+      name: "{{ bambooagent_user }}"
+      comment: "Bamboo agent"
+      state: present
+      group: "{{ bambooagent_group }}"
+      createhome: yes
+    when: (check_bambooagent|failed) or (ansible_distribution!="Ubuntu")
+  
+  - name: '[BAMBOOAGENT] Ensuring root folder of the bamboo agent exists'
+    file:
+      path: "{{ bambooagent_install_root }}"
+      state: directory
+      owner: "{{ bambooagent_user }}"
+      group: "{{ bambooagent_group }}"
+    when: 
+      - (check_bambooagent|failed)
+      - (ansible_distribution=="Ubuntu")
+      - False
 
   when: ansible_os_family!="Windows"
 
+#
 # Creates the user / windows
 - block:
 
@@ -94,16 +102,8 @@
       
   - name: '[BAMBOOAGENT][WIN] create user "{{ bambooagent_user }}" home'
     win_file:
-      path: "{{ bambooagent_userhome }}"
+      path: "{{ bambooagent_install_root }}"
       state: directory
-
-  # for the current user only
-  #- name: '[BAMBOOAGENT][WIN] adding TEMP'
-  #  win_environment:
-  #    state: present
-  #    name: TEMP
-  #    value: '{{ bambooagent_userhome }}/tmp-bamboo'
-  #    level: user
 
   when: ansible_os_family=="Windows"
   vars:
@@ -141,7 +141,7 @@
 #
 - name: "Prevents the bamboo agent to modify its home folder"
   file:
-    path: "{{ bambooagent_userhome }}"
+    path: "{{ bambooagent_install_root }}"
     state: directory
     owner: "{{ bambooagent_user }}"
     group: "{{ bambooagent_group }}"
