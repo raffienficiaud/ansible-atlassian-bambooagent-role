@@ -31,7 +31,7 @@ The following variable are defined and can be overridden:
 | variable | default | meaning |
 |----------|---------|---------|
 | `bambooagent_user` | bambooagent | the user running the bamboo agent|
-| `bambooagent_group`| bambooagent | the group which the bamboo agent user is in|
+| `bambooagent_group`| bambooagent_grp | the group which the bamboo agent user is in|
 | `bambooagent_service_name` | bambooagent| the name of the service running the bamboo agent. This will appear as the service for starup-shutdown admin commands|
 | `bambooagent_userhome`| `/home/bambooagent` | the home folder of the bamboo agent user|
 | `bambooagent_build_home`| `{{ bambooagent_userhome }}/bamboo-agent-home` | the build folder |

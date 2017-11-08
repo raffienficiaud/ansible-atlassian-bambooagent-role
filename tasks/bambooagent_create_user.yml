@@ -60,17 +60,34 @@
       user_cannot_change_password: yes
       password_never_expires: yes
       state: present
-      password: "{{ lookup('password', 'windows/' + inventory_hostname + '/bambooagent length=15') }}"
+      password: "{{bambooagent_passwd}}"
       groups: 
       - "{{ bambooagent_group }}"
     register: win_bamboo_user_reg
 
+  # because this user will be running the service
   - name: '[BAMBOOAGENT][WIN] add account to Log on as a service'
     win_user_right:
       name: SeServiceLogonRight
       users:
       - "{{ bambooagent_user }}"
       action: add
+
+  # because we may want to log in and create a home folder (temporary directory, etc)
+  - name: '[BAMBOOAGENT][WIN] add account to Log on as a user'
+    win_user_right:
+      name: SeInteractiveLogonRight
+      users:
+      - "{{ bambooagent_user }}"
+      action: add      
+
+  - name: '[BAMBOOAGENT][WIN] whoami to create the home folder'
+    win_shell: "whoami"
+    become: yes
+    become_user: "{{ bambooagent_user }}"
+    become_method: runas
+    vars:
+    - ansible_become_password: "{{bambooagent_passwd}}"
 
   - debug:
       var: win_bamboo_user_reg
@@ -89,6 +106,8 @@
   #    level: user
 
   when: ansible_os_family=="Windows"
+  vars:
+    - bambooagent_passwd: "{{ lookup('password', 'windows/' + inventory_hostname + '/bambooagent length=15') }}"
   
 #
 # hides the bamboo agent from the login screen
