@@ -116,11 +116,6 @@
       name: bamboo-remote-agent
       state: absent
 
-  - name: "[BAMBOO][WIN] create temporary folder"
-    win_file:
-      path: "{{ bambooagent_agent_root }}/tmpdir"
-      state: directory
-
   - name: "[BAMBOO][WIN] installing the service"
     win_command: "java -Djava.io.tmpdir=\"{{ bambooagent_agent_root }}/tmpdir\" -Dbamboo.home=\"{{ bambooagent_agent_root }}\" -jar {{ bambooagent_install_root }}/{{ bamboo_java_jar_file | basename }} {{ bamboo_server_url }}/agentServer/ installntservice"
     notify:
