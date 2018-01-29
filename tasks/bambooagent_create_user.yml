@@ -53,7 +53,6 @@
     when: 
       - (check_bambooagent|failed)
       - (ansible_distribution=="Ubuntu")
-      - False
 
   when: ansible_os_family!="Windows"
 

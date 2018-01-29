@@ -9,7 +9,7 @@
       src="{{ item.file }}"
       dest="/tmp/{{ item.file | basename }}"
       owner={{ bambooagent_user }} 
-      group={{ bambooagent_user }} 
+      group={{ bambooagent_group }} 
       mode=0644
     with_items: "{{ certificate_files }}"
 

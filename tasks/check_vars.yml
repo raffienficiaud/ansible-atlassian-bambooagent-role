@@ -16,3 +16,5 @@
     - bambooagent_capability_file
     - bambooagent_jar_filename
     - bambooagent_jar_filename_full_path
+  tags:
+    - always
