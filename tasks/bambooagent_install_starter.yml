@@ -40,6 +40,7 @@
 #
 # Ubuntu startup configuration
 
+# for init.d / ubuntu <= 14.04
 - block:
   - name: Installing the init.d startup
     template:
@@ -59,7 +60,7 @@
       - register init.d
       - restart bambooagent
 
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_distribution=='Ubuntu' and ansible_distribution_version=='14.04'
 
   rescue:
     - debug:
@@ -69,6 +70,41 @@
         state: absent
     - command: /bin/false
 
+# for systemd ubuntu>=16.04
+- block:
+  - name: Installing the systemd config
+    template:
+      src: "ubuntu/etc/systemd/system/atlassian-bambooagent.service.j2"
+      dest: "/etc/systemd/system/atlassian-{{ bambooagent_service_name }}.service"
+      owner: root
+      group: root
+      mode: 0644
+  
+  # startup script is referenced by the systemd service
+  - name: Installing the startup script
+    template:
+      src: "ubuntu/bamboo-startup.sh.j2"
+      dest: "{{ bambooagent_install_root}}/bamboo-startup.sh"
+      owner: "{{ bambooagent_user }}"
+      group: "{{ bambooagent_group }}"
+      mode: 0755
+
+    notify:
+      - register systemd
+      - restart bambooagent
+
+  when: ansible_distribution=='Ubuntu' and ansible_distribution_version=='16.04'
+
+  rescue:
+    - debug:
+        msg: "Error caught during the installation of the bamboo startup"
+    - file:
+        path: "/etc/systemd/system/atlassian-{{ bambooagent_service_name }}.service"
+        state: absent
+    - file:
+        path: "{{ bambooagent_install_root}}/bamboo-startup.sh"
+        state: absent
+    - command: /bin/false
 
 #
 # OSX startup configuration
