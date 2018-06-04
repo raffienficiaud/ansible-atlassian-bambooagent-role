@@ -10,7 +10,7 @@
     when: ansible_os_family=="Windows"
 
 #
-# Creates the user / OSX-Ubuntu
+# Creates the user Ubuntu
 - block:
 
   # this is a bit particular to my own setup as the bambooagent is an LDAP user
@@ -19,11 +19,16 @@
       database: passwd
       key: "{{ bambooagent_user }}"
       split: ':'
+      fail_key: no
     register: check_bambooagent
-    when: ansible_distribution=="Ubuntu"
-  
-  - debug: msg="{{ getent_passwd[bambooagent_user][4] }}"
-    when: ansible_distribution=="Ubuntu"
+    
+  - name: '[BAMBOOAGENT] Set variable for user existence'
+    set_fact:
+      no_user: "{{ getent_passwd[bambooagent_user]==None }}"
+      
+  - debug: var=check_bambooagent
+      
+  - debug: var=no_user
   
   - name: '[BAMBOOAGENT] Ensuring home of "{{ bambooagent_user }}" exists (2)'
     file:
@@ -31,9 +36,7 @@
       state: directory
       owner: "{{ bambooagent_user }}"
       group: "{{ bambooagent_group }}"
-    when: 
-      - (check_bambooagent|succeeded) 
-      - (ansible_distribution=="Ubuntu")
+    when: not no_user
 
   - name: '[BAMBOOAGENT] Creating non-existing user "{{ bambooagent_user }}"'
     user:
@@ -42,7 +45,7 @@
       state: present
       group: "{{ bambooagent_group }}"
       createhome: yes
-    when: (check_bambooagent|failed) or (ansible_distribution!="Ubuntu")
+    when: no_user
   
   - name: '[BAMBOOAGENT] Ensuring root folder of the bamboo agent exists'
     file:
@@ -50,11 +53,26 @@
       state: directory
       owner: "{{ bambooagent_user }}"
       group: "{{ bambooagent_group }}"
-    when: 
-      - (check_bambooagent|failed)
-      - (ansible_distribution=="Ubuntu")
+    when: no_user
+ 
+  when: ansible_distribution=="Ubuntu"
 
-  when: ansible_os_family!="Windows"
+
+#
+# Creates the user / OSX
+- block:
+
+  # this is a bit particular to my own setup as the bambooagent is an LDAP user
+  # but we still want the agent to have a home folder
+  - name: '[BAMBOOAGENT] Creating non-existing user "{{ bambooagent_user }} - OSX"'
+    user:
+      name: "{{ bambooagent_user }}"
+      comment: "Bamboo agent"
+      state: present
+      group: "{{ bambooagent_group }}"
+      createhome: yes
+      
+  when: ansible_distribution=="MacOSX"
 
 #
 # Creates the user / windows
