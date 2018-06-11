@@ -1,0 +1,13 @@
+[Unit]                                                                                                                                    
+Description=Atlassian {{ bambooagent_service_name }} {{ bambooagent_version }}                                                                                                      
+After=syslog.target network.target network-online.target                                                                                  
+Wants=network-online.target                                                                                                               
+
+[Service]                                                                                                                                 
+Type=simple                                                                                                                               
+User={{ bambooagent_user }}                                                                                                                          
+ExecStart={{ bambooagent_install_root }}/bamboo-startup.sh                                                                                             
+ExecStop={{ bambooagent_agent_root }}/bin/bamboo-agent.sh stop                                                                     
+                                                                                                                                          
+[Install]                                                                                                                                 
+WantedBy=multi-user.target                                                                                                                
