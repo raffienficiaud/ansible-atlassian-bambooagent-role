@@ -60,7 +60,7 @@
       - register init.d
       - restart bambooagent
 
-  when: ansible_distribution=='Ubuntu' and ansible_distribution_version=='14.04'
+  when: ansible_distribution=='Ubuntu' and ansible_service_mgr!="systemd"
 
   rescue:
     - debug:
@@ -93,7 +93,7 @@
       - register systemd
       - restart bambooagent
 
-  when: ansible_distribution=='Ubuntu' and ansible_distribution_version=='16.04'
+  when: ansible_distribution=='Ubuntu' and ansible_service_mgr=="systemd"
 
   rescue:
     - debug:

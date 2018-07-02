@@ -15,7 +15,7 @@
 - include_tasks: bambooagent_install_system_certificate.yml
   tags:
     - bambooagent:installation
-  when: (certificate_files is defined) and (certificate_files is not empty)
+  when: (certificate_files is defined) and (certificate_files!="")
 
 - include_tasks: bambooagent_install_starter.yml
   tags:

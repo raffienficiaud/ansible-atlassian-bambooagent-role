@@ -156,20 +156,20 @@
 #
 # do not let the Bamboo agent to modify its home folder
 #
-- name: "Prevents the bamboo agent to modify its home folder"
+- name: "Prevents the bamboo agent to modify its home folder / non-ubuntu (disabled)"
   file:
     path: "{{ bambooagent_install_root }}"
     state: directory
     owner: "{{ bambooagent_user }}"
     group: "{{ bambooagent_group }}"
     mode: "u+rx,g+rx"
-  when: ((check_bambooagent|failed) or (ansible_distribution!="Ubuntu")) and False
+  when: ((check_bambooagent is failed) or (ansible_distribution!="Ubuntu")) and False
 
-- name: "Prevents the bamboo agent to modify its home folder 2"
+- name: "Prevents the bamboo agent to modify its home folder / ubuntu (disabled)"
   file:
     path: "{{ getent_passwd[bambooagent_user][4] }}"
     state: directory
     owner: "{{ bambooagent_user }}"
     group: "{{ bambooagent_group }}"
     mode: "u+rx,g+rx"
-  when: ((check_bambooagent|succeeded) and (ansible_distribution=="Ubuntu")) and False
+  when: ((check_bambooagent is succeeded) and (ansible_distribution=="Ubuntu")) and False
