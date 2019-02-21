@@ -1,0 +1,88 @@
+# this script is for adjusting elements of the installation after the service
+# started and was able to communicate with the bamboo server, as some of the
+# installation steps cannot be done at that time.
+
+# Windows machines
+
+- name: '[BAMBOO] Postinstall check exists bamboo-agent.cfg.xml'
+  win_stat:
+    path: "{{ bambooagent_agent_root }}\\bamboo-agent.cfg.xml"
+  register: stat_bamboocfg_exists_windows
+  when:
+    - ansible_os_family == "Windows"
+  tags:
+    - update_bamboo_config
+
+- name: '[BAMBOO] Postinstall reconfigure build working directory'
+  win_lineinfile:
+    dest: "{{ bambooagent_agent_root }}\\bamboo-agent.cfg.xml"
+    state: present
+    regexp: "^<{{ item.tag }}>"
+    line: "<{{ item.tag }}>{{ item.value }}</{{ item.tag }}>"
+  when:
+    - ansible_os_family == "Windows"
+    - stat_bamboocfg_exists_windows.stat.exists
+    - item.value != ''
+  loop:
+    - tag: 'buildWorkingDirectory'
+      value: '{{ bamboo_build_folder | default("") }}'
+    - tag: 'name'
+      value: '{{ bamboo_agent_name | default("") }}'
+    - tag: 'description'
+      value: '{{ bamboo_agent_description | default("") }}'
+  tags:
+    - update_bamboo_config
+
+- name: '[BAMBOO] creating the build folder'
+  win_file:
+    state: directory
+    path: "{{ bamboo_build_folder }}"
+    owner: "{{ bambooagent_user }}"
+  when:
+    - ansible_os_family == "Windows"
+    - bamboo_build_folder.strip() != ''
+    - bambooagent_user is defined
+
+
+
+
+# Non Windows machines
+
+- name: '[BAMBOO] Postinstall check exists bamboo-agent.cfg.xml'
+  stat:
+    path: "{{ bambooagent_agent_root }}/bamboo-agent.cfg.xml"
+  register: stat_bamboocfg_exists_non_windows
+  when:
+    - ansible_os_family != "Windows"
+  tags:
+    - update_bamboo_config
+
+- name: '[BAMBOO] Postinstall reconfigure build working directory'
+  lineinfile:
+    dest: "{{ bambooagent_agent_root }}/bamboo-agent.cfg.xml"
+    state: present
+    regexp: "^<{{ item.tag }}>"
+    line: "<{{ item.tag }}>{{ item.value }}</{{ item.tag }}>"
+  when:
+    - ansible_os_family != "Windows"
+    - stat_bamboocfg_exists_non_windows.stat.exists
+    - item.value != ''
+  loop:
+    - tag: 'buildWorkingDirectory'
+      value: '{{ bamboo_build_folder | default("") }}'
+    - tag: 'name'
+      value: '{{ bamboo_agent_name | default("") }}'
+    - tag: 'description'
+      value: '{{ bamboo_agent_description | default("") }}'
+  tags:
+    - update_bamboo_config
+
+- name: '[BAMBOO] creating the build folder'
+  file:
+    state: directory
+    path: "{{ bamboo_build_folder }}"
+    owner: "{{ bambooagent_user }}"
+  when:
+    - ansible_os_family != "Windows"
+    - bamboo_build_folder.strip() != ''
+    - bambooagent_user is defined

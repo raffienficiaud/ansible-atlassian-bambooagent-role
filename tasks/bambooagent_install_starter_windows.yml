@@ -1,0 +1,39 @@
+#
+# Windows startup configuration
+# should be included only when ansible_os_family=="Windows"
+
+- block:
+  - name: "[BAMBOO][WIN] stopping previous service 'bamboo-remote-agent'"
+    win_service:
+      name: bamboo-remote-agent
+      state: stopped
+    ignore_errors: True
+
+  - name: "[BAMBOO][WIN] removing previous service 'bamboo-remote-agent'"
+    win_service:
+      name: bamboo-remote-agent
+      state: absent
+
+  - name: "[BAMBOO][WIN] installing the service"
+    win_command: "java -Djava.io.tmpdir=\"{{ bambooagent_agent_root }}/tmpdir\" -Dbamboo.home=\"{{ bambooagent_agent_root }}\" -jar {{ bambooagent_install_root }}/{{ bamboo_java_jar_file | basename }} {{ bamboo_server_url }}/agentServer/ installntservice"
+    notify:
+      - restart bambooagent
+
+  - name: "[BAMBOO][WIN] fixing build folder permissions"
+    win_acl:
+      path: "{{ bambooagent_agent_root }}"
+      user: "{{ bambooagent_user }}"
+      rights: FullControl
+      type: allow
+      state: present
+
+  - name: "[BAMBOO][WIN] configuring the service 'bamboo-remote-agent'"
+    win_service:
+      name: bamboo-remote-agent
+      start_mode: auto
+      username: ".\\{{ bambooagent_user }}"
+      password: "{{ lookup('password', 'windows/' + inventory_hostname + '/bambooagent length=15') }}"
+
+  rescue:
+    - debug: msg='Error caught during the installation of the bamboo startup'
+    - win_command: "/bin/false"

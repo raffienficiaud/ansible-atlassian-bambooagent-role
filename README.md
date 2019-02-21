@@ -26,31 +26,33 @@ Role Variables
 --------------
 
 
-The following variable are defined and can be overridden:
+The following variable need to be set for the role.
 
 | variable | default | meaning |
 |----------|---------|---------|
-| `bambooagent_user` | bambooagent | the user running the bamboo agent|
-| `bambooagent_group`| bambooagent_grp | the group which the bamboo agent user is in|
-| `bambooagent_service_name` | bambooagent| the name of the service running the bamboo agent. This will appear as the service for starup-shutdown admin commands|
-| `bambooagent_install_root`| `/home/bambooagent` | the root folder under which all the programs/scripts of the agent (starters, other local programs) will be installed. This can be the home folder of the agent, althouth it will contain the build folder under `bambooagent_agent_root`.|
+| `bamboo_server_url` | "" (empty string) | Indicates the URL of your Bamboo instance. Should be set.|
+| `bambooagent_user` | `bambooagent` | the user running the bamboo agent|
+| `bambooagent_group`| `bambooagent_grp` | the group which the bamboo agent user is in|
+| `bambooagent_service_name` | `bambooagent` | the name of the service running the bamboo agent. This will appear as the service for starup-shutdown admin commands|
+| `bambooagent_install_root`| `/home/{{bambooagent_user}}` | the root folder under which all the programs/scripts of the agent (starters, other local programs) will be installed. This can be the home folder of the agent, although it will contain the build folder under `bambooagent_agent_root`.|
 | `bambooagent_agent_root`| `{{ bambooagent_install_root }}/bamboo-agent-home` | the root folder for the files specific for running the bamboo agent (the .jar file, wrapper, etc).|
 | `bambooagent_version` | 5.11.1.1 | the version of the agent |
-| `bamboo_java_jar_file` | "" (empty string) | The final `.jar` of the Bamboo ageng launcher. If empty (default), the role will attempt to fetch this file from the Bamboo server directly.|
-| `bambooagent_jar_filename` | `atlassian-bamboo-agent-installer-{{ bambooagent_version }}.jar` | the jar file of the agent |
-| `bambooagent_jar_filename_full_path`| `{{ bambooagent_install_root }}/{{bambooagent_jar_filename}}` | the full path location of the jar file **on the remote** |
+| `bamboo_java_jar_file` | "" (empty string) | The `.jar` of the Bamboo agent launcher. If empty (default), the role will attempt to fetch this file from the Bamboo server directly. Note that this refers to the one with the service wrapper. |
+| `bambooagent_jar_filename` | `atlassian-bamboo-agent-installer-{{ bambooagent_version }}.jar` | the jar file **on the remote agent** |
+| `bambooagent_jar_filename_full_path`| `{{ bambooagent_install_root }}/{{bambooagent_jar_filename}}` | the full path location of the jar file **on the remote agent** |
 | `bambooagent_capability_file`| `{{ bambooagent_agent_root }}/bin/bamboo-capabilities.properties` | the location of the capabilities file on the remote |
 | `bambooagentjava_additional_options`| <ul><li>`-Djava.awt.headless=true`</li><li>`-Dbamboo.home={{ bambooagent_agent_root }}`</li></ul> |additional options passed to the Java virtual machine. This should be a list|
 | `bambooagent_additional_environment`| `[]` (empty list) | additional environment variables set before running the bamboo agent (eg. `CUDA_VISIBLE_DEVICES=1`). This should be a list |
+|`certificate_files`| `[]` | Certificates definition list (see below).|
 
 ### Java
 The version of the agent should work well with the installed Java. For instance,version 5.11 of the Bamboo agent require Java 8.
 
-### Capabilities
-Some specific capabilities may be declared automatically by the agent using a feature of Bamboo: a capability file. This capability file is inside the
-installation folder.
+### Bamboo capability
+Specific capability may be declared automatically by the agent using a feature of Atlassian Bamboo: the capability file.
+This file has a very simple format and lies inside the installation folder.
 
-The capabilities files will receive the capabilities that are declared by running the playbook. This is a list of pairs (dictionary) indicating the name
+The *capability* file will receive the capabilities that are declared by running the playbook. This is a list of pairs (dictionary) indicating the name
 of the capability along with its value.
 
 ```
@@ -68,6 +70,43 @@ and then as a post_task populates the capability:
     state=present
     line="{{item.key}}={{item.value}}"
   with_dict: "{{bamboo_capabilities}}"
+```
+
+#### Reading/writing the capability
+The role provides wrappers around the capability management, through the `read_capability` and `write_capability` tasks of the role.
+Those tasks use the remote `fact` named `bamboo_capabilities` that is a dictionary. A convenient way to use this is the following:
+
+```
+- hosts: my-bamboo-agents
+  vars:
+    # this variable needs to be set to retrieve the capability file
+    - bambooagent_agent_root: "the specified agent root or the default"
+
+  pre_tasks:
+    # this will read the capability file if it exist
+    - name: Reading the agent capability file
+      include_role:
+        name: atlassian-bambooagent-role
+        tasks_from: read_capability
+
+  post_tasks:
+    # this will update the capability file and create it if needed
+    - name: Updating the agent capability file
+      include_role:
+        name: atlassian-bambooagent-role
+        tasks_from: write_capability
+
+  tasks:
+    # ... tasks
+
+    - name: 'update capability'
+      set_fact:
+        bamboo_capabilities: "{{ bamboo_capabilities | combine({item.key:item.value}) }}"
+      loop:
+        - key: 'bamboo_custom_capability'
+          value: "bamboo_custom_capability_value"
+        # ...
+
 ```
 
 ### HTTPS certificate to the service

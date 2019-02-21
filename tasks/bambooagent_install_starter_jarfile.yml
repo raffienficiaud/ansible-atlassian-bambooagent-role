@@ -1,0 +1,57 @@
+# Installs the startup procedure for the bambooagent
+
+#
+# ensures the destination folder exists
+- name: '[BAMBOO] Creating the installation folder'
+  file:
+    path: "{{ bambooagent_install_root }}"
+    state: directory
+    owner: "{{ bambooagent_user }}"
+    mode: 0755
+  when:
+  - ansible_os_family!="Windows"
+
+- name: '[BAMBOO] Creating the installation folder'
+  win_file:
+     path: "{{ bambooagent_install_root }}"
+     state: directory
+     owner: "{{ bambooagent_user }}"
+  when:
+  - ansible_os_family=="Windows"
+
+#
+# Copies the .jar
+- name: '[BAMBOO] Copy bamboo jar into destination from existing file'
+  copy:
+    src: "{{ bamboo_java_jar_file }}"
+    dest: "{{ bambooagent_install_root }}/{{ bamboo_java_jar_file | basename }}"
+  when:
+  - (bamboo_java_jar_file | default()) != ''
+  - ansible_os_family!="Windows"
+
+- name: '[BAMBOO][WIN] Copy bamboo jar into destination from existing file'
+  win_copy:
+    src: "{{ bamboo_java_jar_file }}"
+    dest: "{{ bambooagent_install_root }}/{{ bamboo_java_jar_file | basename }}"
+  when:
+  - (bamboo_java_jar_file | default()) != ''
+  - ansible_os_family=="Windows"
+
+# Fetches the .jar
+- name: '[BAMBOO] Copy bamboo jar into destination from server'
+  get_url:
+    url: "{{ bamboo_server_url }}/agentServer/agentInstaller/{{ bamboo_java_jar_file | basename }}"
+    dest: "{{ bambooagent_install_root }}/{{ bamboo_java_jar_file | basename }}"
+    validate_certs: True
+  when:
+  - (bamboo_java_jar_file | default()) == ''
+  - ansible_os_family!="Windows"
+
+- name: '[BAMBOO][WIN] Copy bamboo jar into destination from server'
+  win_get_url:
+    url: "{{ bamboo_server_url }}/agentServer/agentInstaller/{{ bamboo_java_jar_file | basename }}"
+    dest: "{{ bambooagent_install_root }}/{{ bamboo_java_jar_file | basename }}"
+    validate_certs: True
+  when:
+  - (bamboo_java_jar_file | default()) == ''
+  - ansible_os_family=="Windows"
