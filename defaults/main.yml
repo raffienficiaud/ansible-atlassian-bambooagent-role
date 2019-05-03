@@ -28,3 +28,6 @@ bambooagentjava_additional_options:
 # additional environment variables set before running the bamboo agent (eg. CUDA_VISIBLE_DEVICES)
 # THIS SHOULD BE A LIST
 bambooagent_additional_environment: []
+
+# Default capability of the agent
+bamboo_capabilities: {}

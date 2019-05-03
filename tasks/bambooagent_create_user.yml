@@ -21,15 +21,15 @@
       split: ':'
       fail_key: no
     register: check_bambooagent
-    
+
   - name: '[BAMBOOAGENT] Set variable for user existence'
     set_fact:
       no_user: "{{ getent_passwd[bambooagent_user]==None }}"
-      
+
   - debug: var=check_bambooagent
-      
+
   - debug: var=no_user
-  
+
   - name: '[BAMBOOAGENT] Ensuring home of "{{ bambooagent_user }}" exists (2)'
     file:
       path: "{{ getent_passwd[bambooagent_user][4] }}"
@@ -46,7 +46,7 @@
       group: "{{ bambooagent_group }}"
       createhome: yes
     when: no_user
-  
+
   - name: '[BAMBOOAGENT] Ensuring root folder of the bamboo agent exists'
     file:
       path: "{{ bambooagent_install_root }}"
@@ -54,7 +54,7 @@
       owner: "{{ bambooagent_user }}"
       group: "{{ bambooagent_group }}"
     when: no_user
- 
+
   when: ansible_distribution=="Ubuntu"
 
 
@@ -71,7 +71,8 @@
       state: present
       group: "{{ bambooagent_group }}"
       createhome: yes
-      
+      hidden: yes
+
   when: ansible_distribution=="MacOSX"
 
 #
@@ -85,8 +86,8 @@
       user_cannot_change_password: yes
       password_never_expires: yes
       state: present
-      password: "{{bambooagent_passwd}}"
-      groups: 
+      password: "{{ bambooagent_passwd }}"
+      groups:
       - "{{ bambooagent_group }}"
     register: win_bamboo_user_reg
 
@@ -95,8 +96,9 @@
     win_user_right:
       name: SeServiceLogonRight
       users:
-      - "{{ bambooagent_user }}"
+      - '{{ ansible_hostname }}\{{ bambooagent_user }}'
       action: add
+    ignore_errors: True # ansible 2.7
 
   # because we may want to log in and create a home folder (temporary directory, etc)
   - name: '[BAMBOOAGENT][WIN] add account to Log on as a user'
@@ -104,35 +106,71 @@
       name: SeInteractiveLogonRight
       users:
       - "{{ bambooagent_user }}"
-      action: add      
+      action: add
+    ignore_errors: True # ansible 2.7
 
   - name: '[BAMBOOAGENT][WIN] whoami to create the home folder'
     win_shell: "whoami"
-    become: yes
-    become_user: "{{ bambooagent_user }}"
-    become_method: runas
     vars:
-    - ansible_become_password: "{{bambooagent_passwd}}"
+        ansible_become: yes
+        ansible_become_method: runas
+        ansible_become_user: "{{ bambooagent_user }}"
+        ansible_become_pass: "{{ bambooagent_passwd }}"
+
+  # PATH is removed as it causes issues with the java service wrapper
+  - name: '[BAMBOOAGENT][WIN] remove PATH as workaround for bamboo service'
+    win_environment:
+      state: absent
+      name: PATH
+      level: user
+    vars:
+        ansible_become: yes
+        ansible_become_method: runas
+        ansible_become_user: "{{ bambooagent_user }}"
+        ansible_become_pass: "{{ bambooagent_passwd }}"
+    register: bamboo_user_path
+
+  - debug:
+      var: bamboo_user_path
+
+  # the content of PATH is put inside LOCAL_PATH for this specific user
+  - name: '[BAMBOOAGENT][WIN] add LOCAL_PATH as workaround for bamboo service'
+    win_environment:
+      state: present
+      name: LOCAL_PATH
+      level: user
+      value: "{{ bamboo_user_path.before_value }}"
+    vars:
+        ansible_become: yes
+        ansible_become_method: runas
+        ansible_become_user: "{{ bambooagent_user }}"
+        ansible_become_pass: "{{ bambooagent_passwd }}"
+    when: bamboo_user_path.changed
+
+  # this can always be there, if the variable %LOCAL_PATH% is not found, it expands
+  # to nothing
+  - name: '[BAMBOOAGENT][WIN] add LOCAL_PATH to global scope as workaround for bamboo service'
+    win_path:
+      state: present
+      elements:
+       - '%LOCAL_PATH%'
+      scope: machine
 
   - debug:
       var: win_bamboo_user_reg
-      
+
   - name: '[BAMBOOAGENT][WIN] create user "{{ bambooagent_user }}" home'
     win_file:
       path: "{{ bambooagent_install_root }}"
       state: directory
 
-  when: ansible_os_family=="Windows"
+  when: ansible_os_family == "Windows"
   vars:
     - bambooagent_passwd: "{{ lookup('password', 'windows/' + inventory_hostname + '/bambooagent length=15') }}"
-  
+
 #
 # hides the bamboo agent from the login screen
 #
-
-- name: Hides the user from the login screen OSX
-  command: defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add "{{ bambooagent_user }}"
-  when: ansible_distribution=="MacOSX"
 
 - name: Creates the login hidding file
   file:

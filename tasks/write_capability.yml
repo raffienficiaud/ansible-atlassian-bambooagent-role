@@ -1,0 +1,53 @@
+
+- name: '[BAMBOO] Summarize all capabilities'
+  debug:
+    msg: "[CAP] '{{ item.key.strip() | replace('\\n', '') | replace('\\r', '') }}' => '{{ item.value.strip() | replace('\\n', '') | replace('\\r', '') }}'"
+  loop: "{{ bamboo_capabilities | dict2items }}"
+  tags:
+  - capability
+
+- name: '[BAMBOO] Flush the capabilities into the agents file'
+  lineinfile:
+    dest: "{{ bambooagent_capability_file }}"
+    state: present
+    regexp: "^{{ item.key.strip() | replace('\\n', '') | replace('\\r', '') }}="
+    line: "{{ item.key.strip() | replace('\\n', '') | replace('\\r', '') }}={{ item.value.strip() | replace('\\n', '') | replace('\\r', '') }}"
+  loop: "{{ bamboo_capabilities | dict2items }}"
+  tags:
+  - capability:write
+  when:
+    - ansible_os_family != "Windows"
+
+- name: '[BAMBOO] Remove empty lines from the capability file'
+  lineinfile:
+    dest: "{{ bambooagent_capability_file }}"
+    state: absent
+    regexp: "^\\s*$"
+  tags:
+  - capability:write
+  when:
+    - ansible_os_family != "Windows"
+
+
+# what a nightmare to escape \ with YAML...
+- name: '[BAMBOO] Flush the capabilities into the agents file'
+  win_lineinfile:
+    dest: "{{ bambooagent_capability_file }}"
+    state: present
+    regexp: "^{{ item.key.strip() | replace('\\n', '') | replace('\\r', '') }}="
+    line: "{{ item.key.strip() | replace('\\n', '') | replace('\\r', '') }}={{ item.value.strip() | replace('\\n', '') | replace('\\r', '') | regex_replace('(?<!\\\\)\\\\(?!\\\\)', '\\\\\\\\') }}"
+  loop: "{{ bamboo_capabilities | dict2items }}"
+  tags:
+  - capability:write
+  when:
+    - ansible_os_family == "Windows"
+
+- name: '[BAMBOO] Remove empty lines from the capability file'
+  win_lineinfile:
+    dest: "{{ bambooagent_capability_file }}"
+    state: absent
+    regexp: "^\\s*$"
+  tags:
+  - capability:write
+  when:
+    - ansible_os_family == "Windows"

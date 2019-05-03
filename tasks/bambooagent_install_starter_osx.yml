@@ -1,0 +1,33 @@
+#
+# OSX startup configuration
+# should be included only when ansible_distribution=="MacOSX"
+
+- block:
+  - name: "[BAMBOO][OSX] Installing the plist"
+    template:
+      src: "osx/Library/LaunchDaemons/com.atlassian.bambooagent.plist.j2"
+      dest: "/Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist"
+      owner: root
+      group: admin
+      mode: 0644
+
+  - name: "[BAMBOO][OSX] Installing the startup script"
+    template:
+      src: "osx/bamboo.sh.j2"
+      dest: "{{ bambooagent_install_root }}/bamboo.sh"
+      owner: "{{ bambooagent_user }}"
+      group: "{{ bambooagent_group }}"
+      mode: 0755
+
+    notify:
+      - restart bambooagent
+
+  rescue:
+    - debug: msg='Error caught during the installation of the bamboo startup'
+    - file:
+        path: "/Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist"
+        state: absent
+    - file:
+        path: "{{ bambooagent_install_root }}/bamboo.sh"
+        state: absent
+    - command: /bin/false
