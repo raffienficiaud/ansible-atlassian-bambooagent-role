@@ -15,7 +15,7 @@
   service: name=atlassian-{{ bambooagent_service_name }} state=started enabled=yes
   listen: "restart bambooagent"
   when: ansible_distribution=="Ubuntu" and ansible_service_mgr!="systemd"
-  
+
 # on systemd
 - name: restart bambooagent systemd
   systemd: state=started name=atlassian-{{ bambooagent_service_name }} daemon_reload=yes

@@ -22,15 +22,18 @@
       - register init.d
       - restart bambooagent
 
-  when: ansible_service_mgr!="systemd"
+  when: ansible_service_mgr != "systemd"
 
   rescue:
-    - debug:
+    - name: print error message
+      debug:
         msg: "Error caught during the installation of the bamboo startup"
-    - file:
+    - name: remove the startup script
+      file:
         path: "/etc/init.d/atlassian-{{ bambooagent_service_name }}"
         state: absent
-    - command: /bin/false
+    - name: fail the task
+      command: /bin/false
 
 # for systemd ubuntu>=16.04
 - block:
@@ -46,7 +49,7 @@
   - name: "[BAMBOO][UBUNTU] Installing the startup script"
     template:
       src: "ubuntu/bamboo-startup.sh.j2"
-      dest: "{{ bambooagent_install_root}}/bamboo-startup.sh"
+      dest: "{{ bambooagent_install_root }}/bamboo-startup.sh"
       owner: "{{ bambooagent_user }}"
       group: "{{ bambooagent_group }}"
       mode: 0755
@@ -55,15 +58,19 @@
       - register systemd
       - restart bambooagent
 
-  when: ansible_service_mgr=="systemd"
+  when: ansible_service_mgr == "systemd"
 
   rescue:
-    - debug:
+    - name: print error message
+      debug:
         msg: "Error caught during the installation of the bamboo startup"
-    - file:
+    - name: Remove startup on failure
+      file:
         path: "/etc/systemd/system/atlassian-{{ bambooagent_service_name }}.service"
         state: absent
-    - file:
-        path: "{{ bambooagent_install_root}}/bamboo-startup.sh"
+    - name: Remove script on failure
+      file:
+        path: "{{ bambooagent_install_root }}/bamboo-startup.sh"
         state: absent
-    - command: /bin/false
+    - name: fail task
+      command: /bin/false

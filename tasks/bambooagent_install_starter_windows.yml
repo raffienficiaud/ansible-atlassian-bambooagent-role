@@ -35,5 +35,8 @@
       password: "{{ lookup('password', 'windows/' + inventory_hostname + '/bambooagent length=15') }}"
 
   rescue:
-    - debug: msg='Error caught during the installation of the bamboo startup'
-    - win_command: "/bin/false"
+    - name: print error message
+      debug:
+        msg: 'Error caught during the installation of the bamboo startup'
+    - name: fail the task
+      win_command: "/bin/false"

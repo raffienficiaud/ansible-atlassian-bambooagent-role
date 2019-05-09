@@ -1,58 +1,58 @@
 # Install the certificate on the machine
 
-#    
+#
 # OSX
 #
 - block:
   - name: '[BAMBOOAGENT] certificate to remote'
-    copy: 
+    copy:
       src="{{ item.file }}"
       dest="/tmp/{{ item.file | basename }}"
-      owner={{ bambooagent_user }} 
-      group={{ bambooagent_group }} 
+      owner={{ bambooagent_user }}
+      group={{ bambooagent_group }}
       mode=0644
     with_items: "{{ certificate_files }}"
 
   - name: '[BAMBOOAGENT] certificate install to the keystore'
     command: security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /tmp/{{ item.file | basename }}
     with_items: "{{ certificate_files }}"
-    
+
   when: ansible_distribution == "MacOSX"
 
   always:
     - name: '[BAMBOOAGENT] certificate cleanup'
-      file: 
+      file:
         path=/tmp/{{ item.file | basename }}
         state=absent
       with_items: "{{ certificate_files }}"
 
-    
 
-#    
+
+#
 # Ubuntu
 #
 - block:
   - name: '[BAMBOOAGENT] certificate to remote'
-    copy: 
+    copy:
       src="{{ item.file }}"
       dest=/usr/local/share/ca-certificates/{{ item.file | basename }}
       owner=root
-      group=root 
+      group=root
       mode=0644
     with_items: "{{ certificate_files }}"
 
   - name: '[BAMBOOAGENT] certificates registration'
     command: update-ca-certificates
-    
+
   when: ansible_distribution == "Ubuntu"
 
 
-#    
+#
 # Windows
 #
 - block:
   - name: '[BAMBOOAGENT] certificate to remote'
-    win_copy: 
+    win_copy:
       src={{ item.file }}
       dest="{{ ansible_env['TMP'] }}/{{ item.file | basename }}"
     with_items: "{{ certificate_files }}"
@@ -63,6 +63,5 @@
 
   # does not work: certmgs should be installed. certutil does the job well.
   # certmgr.exe -add \"{{ ansible_env['TMP'] }}/{{ item.file | basename }}\" -s -r localMachine trustedpublisher
-  when: 
+  when:
   - ansible_os_family=="Windows"
-

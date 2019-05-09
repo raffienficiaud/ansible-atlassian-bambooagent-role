@@ -2,7 +2,9 @@
 # started and was able to communicate with the bamboo server, as some of the
 # installation steps cannot be done at that time.
 
+#
 # Windows machines
+#
 
 - name: '[BAMBOO] Postinstall check exists bamboo-agent.cfg.xml'
   win_stat:
@@ -43,10 +45,9 @@
     - bamboo_build_folder.strip() != ''
     - bambooagent_user is defined
 
-
-
-
+#
 # Non Windows machines
+#
 
 - name: '[BAMBOO] Postinstall check exists bamboo-agent.cfg.xml'
   stat:

@@ -7,12 +7,12 @@
 
 - name: "[BAMBOO] Ubuntu installation tasks"
   include_tasks: bambooagent_install_starter_ubuntu.yml
-  when: ansible_distribution=='Ubuntu'
+  when: ansible_distribution == 'Ubuntu'
 
 - name: "[BAMBOO] OSX installation tasks"
   include_tasks: bambooagent_install_starter_osx.yml
-  when: ansible_distribution=="MacOSX"
+  when: ansible_distribution == "MacOSX"
 
 - name: "[BAMBOO] Windows installation tasks"
   include_tasks: bambooagent_install_starter_windows.yml
-  when: ansible_os_family=="Windows"
+  when: ansible_os_family == "Windows"

@@ -9,7 +9,7 @@
     owner: "{{ bambooagent_user }}"
     mode: 0755
   when:
-  - ansible_os_family!="Windows"
+  - ansible_os_family != "Windows"
 
 - name: '[BAMBOO] Creating the installation folder'
   win_file:
@@ -17,7 +17,7 @@
      state: directory
      owner: "{{ bambooagent_user }}"
   when:
-  - ansible_os_family=="Windows"
+  - ansible_os_family == "Windows"
 
 #
 # Copies the .jar

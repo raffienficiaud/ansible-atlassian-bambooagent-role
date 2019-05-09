@@ -15,7 +15,8 @@
 
   # this is a bit particular to my own setup as the bambooagent is an LDAP user
   # but we still want the agent to have a home folder
-  - getent:
+  - name: checking if the local user exists
+    getent:
       database: passwd
       key: "{{ bambooagent_user }}"
       split: ':'
@@ -25,10 +26,6 @@
   - name: '[BAMBOOAGENT] Set variable for user existence'
     set_fact:
       no_user: "{{ getent_passwd[bambooagent_user]==None }}"
-
-  - debug: var=check_bambooagent
-
-  - debug: var=no_user
 
   - name: '[BAMBOOAGENT] Ensuring home of "{{ bambooagent_user }}" exists (2)'
     file:
@@ -55,7 +52,7 @@
       group: "{{ bambooagent_group }}"
     when: no_user
 
-  when: ansible_distribution=="Ubuntu"
+  when: ansible_distribution == "Ubuntu"
 
 
 #
@@ -73,7 +70,7 @@
       createhome: yes
       hidden: yes
 
-  when: ansible_distribution=="MacOSX"
+  when: ansible_distribution == "MacOSX"
 
 #
 # Creates the user / windows
@@ -155,9 +152,6 @@
       elements:
        - '%LOCAL_PATH%'
       scope: machine
-
-  - debug:
-      var: win_bamboo_user_reg
 
   - name: '[BAMBOOAGENT][WIN] create user "{{ bambooagent_user }}" home'
     win_file:

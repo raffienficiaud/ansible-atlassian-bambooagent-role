@@ -23,11 +23,16 @@
       - restart bambooagent
 
   rescue:
-    - debug: msg='Error caught during the installation of the bamboo startup'
-    - file:
+    - name: print error message
+      debug:
+        msg: 'Error caught during the installation of the bamboo startup'
+    - name: remove the plist
+      file:
         path: "/Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist"
         state: absent
-    - file:
+    - name: remove the startup script
+      file:
         path: "{{ bambooagent_install_root }}/bamboo.sh"
         state: absent
-    - command: /bin/false
+    - name: fail the task
+      command: /bin/false
