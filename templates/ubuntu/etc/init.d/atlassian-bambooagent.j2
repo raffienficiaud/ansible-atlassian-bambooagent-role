@@ -13,7 +13,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Atlassian {{ bambooagent_service_name }} {{ bambooagent_version }}"
 APP_HOME="{{ bambooagent_agent_root }}"
 RUNAS="{{ bambooagent_user }}"
-SCRIPTNAME=/etc/init.d/atlassian-{{ bambooagent_service_name }}
+SCRIPTNAME=/etc/init.d/{{ bambooagent_service_name }}
 LOGFILE="/var/log/{{ bambooagent_service_name }}.log"
 
 [ -d "$APP_HOME" ] || exit 0

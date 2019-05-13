@@ -1,3 +1,8 @@
+- name: '[BAMBOO] Check capability file variable'
+  fail:
+    msg: "Variable 'bambooagent_capability_file' is not defined"
+  when: bambooagent_capability_file is undefined
+
 - name: '[BAMBOO] Summarize all capabilities'
   debug:
     msg: "[CAP] '{{ item.key.strip() | replace('\\n', '') | replace('\\r', '') }}' => '{{ item.value.strip() | replace('\\n', '') | replace('\\r', '') }}'"

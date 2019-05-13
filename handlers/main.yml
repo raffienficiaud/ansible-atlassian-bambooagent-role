@@ -1,9 +1,12 @@
 ---
 - name: register init.d
-  command: update-rc.d atlassian-{{ bambooagent_service_name }} defaults
+  command: update-rc.d {{ bambooagent_service_name }} enabled
 
-- name: register systemd
-  systemd: enabled=yes name=atlassian-{{ bambooagent_service_name }} daemon_reload=yes
+- name: register bambooagent service
+  service:
+    name: "{{ bambooagent_service_name }}"
+    enabled: yes
+    state: reloaded
 
 - name: restart bambooagent osx
   shell: >-
@@ -12,16 +15,14 @@
     launchctl load -w
     /Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist
   listen: "restart bambooagent"
-  when: ansible_distribution=="MacOSX"
+  when: ansible_distribution == "MacOSX"
 
-# on init.d
-- name: restart bambooagent init.d
-  service: name=atlassian-{{ bambooagent_service_name }} state=started enabled=yes
+- name: restart bambooagent linux
+  service:
+    name: "{{ bambooagent_service_name }}"
+    state: restarted
+    enabled: yes
   listen: "restart bambooagent"
-  when: ansible_distribution=="Ubuntu" and ansible_service_mgr!="systemd"
+  when:
+    - ansible_distribution == "Ubuntu"
 
-# on systemd
-- name: restart bambooagent systemd
-  systemd: state=started name=atlassian-{{ bambooagent_service_name }} daemon_reload=yes
-  listen: "restart bambooagent"
-  when: ansible_distribution=="Ubuntu" and ansible_service_mgr=="systemd"
