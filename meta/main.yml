@@ -4,7 +4,7 @@ galaxy_info:
 
   license: BSD
 
-  min_ansible_version: 2.0
+  min_ansible_version: 2.7
 
   # If this a Container Enabled role, provide the minimum Ansible Container version.
   # min_ansible_container_version:
@@ -34,11 +34,12 @@ galaxy_info:
     versions:
      - all
 
-
   galaxy_tags:
   - atlassian
   - bamboo
-  - agent
-  - installation
+  - development
+  - ci
+  - cd
+  - deployment
 
 dependencies: []
