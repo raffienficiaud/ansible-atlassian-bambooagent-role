@@ -6,7 +6,11 @@
   systemd: enabled=yes name=atlassian-{{ bambooagent_service_name }} daemon_reload=yes
 
 - name: restart bambooagent osx
-  shell: "launchctl unload -w /Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist && launchctl load -w /Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist"
+  shell: >-
+    launchctl unload -w
+    /Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist &&
+    launchctl load -w
+    /Library/LaunchDaemons/com.atlassian.{{ bambooagent_service_name }}.plist
   listen: "restart bambooagent"
   when: ansible_distribution=="MacOSX"
 
