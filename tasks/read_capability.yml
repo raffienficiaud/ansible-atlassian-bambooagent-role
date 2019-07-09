@@ -4,10 +4,6 @@
     msg: "Variable 'bambooagent_capability_file' is not defined"
   when: bambooagent_capability_file is undefined
 
-#- name: '[BAMBOO] advertising the capability file as fact'
-#  set_fact:
-#    capability_file: "{{ bambooagent_capability_file }}"
-#
 - name: '[BAMBOO] read remote capability file'
   block:
 

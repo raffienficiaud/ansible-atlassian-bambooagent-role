@@ -32,6 +32,18 @@
   when:
     - ansible_os_family != "Windows"
 
+- name: '[BAMBOO] Remove capabilities from agents'
+  lineinfile:
+    dest: "{{ bambooagent_capability_file }}"
+    state: absent
+    regexp: "^{{ item.strip() | replace('\\n', '') | replace('\\r', '') }}="
+  loop: "{{ bamboo_capabilities_to_remove | default([])  }}"
+  tags:
+  - capability:write
+  when:
+    - ansible_os_family != "Windows"
+
+
 
 # what a nightmare to escape \ with YAML...
 - name: '[BAMBOO] Flush the capabilities into the agents file'
@@ -51,6 +63,17 @@
     dest: "{{ bambooagent_capability_file }}"
     state: absent
     regexp: "^\\s*$"
+  tags:
+  - capability:write
+  when:
+    - ansible_os_family == "Windows"
+
+- name: '[BAMBOO] Remove capabilities from agents'
+  win_lineinfile:
+    dest: "{{ bambooagent_capability_file }}"
+    state: absent
+    regexp: "^{{ item.strip() | replace('\\n', '') | replace('\\r', '') }}="
+  loop: "{{ bamboo_capabilities_to_remove | default([]) }}"
   tags:
   - capability:write
   when:
