@@ -118,6 +118,32 @@ A typical play in a playbook would look like this:
 
 ```
 
+### Removing capabilities
+Over time, being able to maintain the capabilities is important, especially when the number of agents increases.
+Using the same tools as above, it is possible to remove capabilities that became obsolete. This can be done by
+indicating in the list `bamboo_capabilities_to_remove` the names of the capabilities that need to be removed.
+
+```
+- hosts: my-bamboo-agents
+  vars:
+    - bambooagent_agent_root: "the specified agent root or the default"
+
+  tasks:
+    - name: '[BAMBOO] remove obsolete capabilities'
+      set_fact:
+        bamboo_capabilities_to_remove:
+          - cache_folder1
+          - qt_version3
+
+  post_tasks:
+    # this will update the capability file and create it if needed
+    - name: Updating the agent capability file
+      include_role:
+        name: atlassian-bambooagent-role
+        tasks_from: write_capability
+
+```
+
 ### HTTPS certificate to the service
 The certificate should be in the variable `certificate_files` (a list of certificates which are alias/filename pairs) like the following:
 

@@ -3,11 +3,11 @@
 - block:
   - name: '[BAMBOOAGENT] Group "{{ bambooagent_group }}"'
     group: name={{ bambooagent_group }} state=present
-    when: ansible_os_family!="Windows"
+    when: ansible_os_family != "Windows"
 
   - name: '[BAMBOOAGENT] Group "{{ bambooagent_group }}"'
     win_group: name={{ bambooagent_group }} state=present
-    when: ansible_os_family=="Windows"
+    when: ansible_os_family == "Windows"
 
 #
 # Creates the user Ubuntu
@@ -173,16 +173,16 @@
     owner: root
     group: root
     mode: "u+rw,g+r,o+r"
-  when: ansible_distribution=="Ubuntu"
+  when: ansible_distribution == "Ubuntu"
 
 - name: Hides the user from the login screen Ubuntu
   ini_file:
-    dest=/var/lib/AccountsService/users/{{ bambooagent_user }}
-    section=User
-    option=SystemAccount
-    value=true
-    backup=yes
-  when: ansible_distribution=="Ubuntu"
+    dest: /var/lib/AccountsService/users/{{ bambooagent_user }}
+    section: User
+    option: SystemAccount
+    value: true
+    backup: yes
+  when: ansible_distribution == "Ubuntu"
 
 
 #
@@ -195,7 +195,9 @@
     owner: "{{ bambooagent_user }}"
     group: "{{ bambooagent_group }}"
     mode: "u+rx,g+rx"
-  when: ((check_bambooagent is failed) or (ansible_distribution!="Ubuntu")) and False
+  when:
+    - ((check_bambooagent is failed) or (ansible_distribution != "Ubuntu"))
+    - False
 
 - name: "Prevents the bamboo agent to modify its home folder / ubuntu (disabled)"
   file:
@@ -204,4 +206,6 @@
     owner: "{{ bambooagent_user }}"
     group: "{{ bambooagent_group }}"
     mode: "u+rx,g+rx"
-  when: ((check_bambooagent is succeeded) and (ansible_distribution=="Ubuntu")) and False
+  when:
+    - ((check_bambooagent is succeeded) and (ansible_distribution == "Ubuntu"))
+    - False
