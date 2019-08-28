@@ -6,7 +6,6 @@
   service:
     name: "{{ bambooagent_service_name }}"
     enabled: yes
-    state: reloaded
 
 - name: restart bambooagent osx
   shell: >-
@@ -25,4 +24,3 @@
   listen: "restart bambooagent"
   when:
     - ansible_distribution == "Ubuntu"
-
