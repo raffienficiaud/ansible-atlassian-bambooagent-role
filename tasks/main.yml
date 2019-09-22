@@ -6,6 +6,6 @@
 - include_tasks: bambooagent_create_user.yml
 # Installs the certificates, if any, on the system
 - include_tasks: bambooagent_install_system_certificate.yml
-  when: (certificate_files is defined) and (certificate_files != "")
+  when: certificate_files|default()
 - include_tasks: bambooagent_install_starter.yml
 - include_tasks: bambooagent_configure_capabilities.yml

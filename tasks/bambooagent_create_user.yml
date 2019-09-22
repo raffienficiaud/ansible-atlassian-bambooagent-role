@@ -2,11 +2,15 @@
 
 - block:
   - name: '[BAMBOOAGENT] Group "{{ bambooagent_group }}"'
-    group: name={{ bambooagent_group }} state=present
+    group:
+      name: "{{ bambooagent_group }}"
+      state: present
     when: ansible_os_family != "Windows"
 
   - name: '[BAMBOOAGENT] Group "{{ bambooagent_group }}"'
-    win_group: name={{ bambooagent_group }} state=present
+    win_group:
+      name: "{{ bambooagent_group }}"
+      state: present
     when: ansible_os_family == "Windows"
 
 #
@@ -166,7 +170,7 @@
 # hides the bamboo agent from the login screen
 #
 
-- name: Creates the login hidding file
+- name: Creates the login hiding file
   file:
     path: "/var/lib/AccountsService/users/{{ bambooagent_user }}"
     state: touch

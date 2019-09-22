@@ -32,7 +32,8 @@
       file:
         path: "/etc/init.d/{{ bambooagent_service_name }}"
         state: absent
-    - fail:
+    - name: fail the task
+      fail:
         msg: An error occurred
 
 # for systemd ubuntu>=16.04
@@ -72,5 +73,6 @@
       file:
         path: "{{ bambooagent_install_root }}/bamboo-startup.sh"
         state: absent
-    - fail:
+    - name: fail the task
+      fail:
         msg: An error occurred

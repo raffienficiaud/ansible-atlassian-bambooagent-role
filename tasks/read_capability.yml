@@ -7,25 +7,27 @@
 - name: '[BAMBOO] read remote capability file'
   block:
 
-    - name: '[BAMBOO] read remote capability file'
+    - name: '[BAMBOO] check remote capability file exists'
       stat:
         path: "{{ bambooagent_capability_file }}"
       register: stat_capability_exist
 
-    - name: '[BAMBOO] read remote capability file'
+    - name: '[BAMBOO] read remote capability file content'
       slurp:
         src: "{{ bambooagent_capability_file }}"
       when: stat_capability_exist.stat.exists
       register: capability_content_remote
 
-    - name: '[BAMBOO] read remote capability file'
+    - name: '[BAMBOO] process remote capability file content'
       set_fact:
-        bamboo_capabilities: "{{ (bamboo_capabilities|default({})) | combine({item.split('=')[0].strip(): item.split('=')[1].strip()}) }}"
+        bamboo_capabilities: |
+           {{ (bamboo_capabilities | default({})) |
+              combine({item.split('=')[0].strip(): item.split('=')[1].strip()}) }}
       loop: "{{ (capability_content_remote['content'] | b64decode).split('\n') }}"
       when:
         - stat_capability_exist.stat.exists
-        - item.strip() != ''
-        - item.split('=')[0].strip() != ''
+        - item.strip()
+        - item.split('=')[0].strip()
 
   when:
     - ansible_os_family != "Windows"
@@ -37,24 +39,28 @@
         path: "{{ bambooagent_capability_file }}"
       register: stat_capability_exist
 
-    - debug:
-        var: bambooagent_capability_file
-
     - name: '[BAMBOO] read remote capability file'
       slurp:
         src: "{{ bambooagent_capability_file }}"
       when: stat_capability_exist.stat.exists
       register: capability_content_remote
 
-    # what a nightmare to escape \ with YAML...
+    # replacing \\\\ with just \\ (the capability should contain \\ for a single \)
     - name: '[BAMBOO] read remote capability file'
       set_fact:
-        bamboo_capabilities: "{{ (bamboo_capabilities|default({})) | combine({item.split('=')[0].strip(): item.split('=')[1].strip() | regex_replace('(?<!\\\\\\\\)\\\\\\\\(?!\\\\\\\\)', '\\\\') }) }}"
+        bamboo_capabilities: >-
+          {{ (bamboo_capabilities | default({}))
+             | combine({item.split('=')[0].strip(): (
+                        item.split('=')[1].strip()
+                        | regex_replace('(?<!\\\\)\\\\(?!\\\\)', '\\')
+                        )
+                       })
+             }}
       loop: "{{ (capability_content_remote['content'] | b64decode).split('\n') }}"
       when:
         - stat_capability_exist.stat.exists
-        - item.strip() != ''
-        - item.split('=')[0].strip() != ''
+        - item.strip()
+        - item.split('=')[0].strip()
 
   when:
     - ansible_os_family == "Windows"

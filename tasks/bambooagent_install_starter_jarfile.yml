@@ -24,33 +24,33 @@
 - name: '[BAMBOO] Copy bamboo jar into destination from existing file'
   copy:
     src: "{{ bamboo_java_jar_file }}"
-    dest: "{{ bambooagent_install_root }}/{{ bamboo_java_jar_file | basename }}"
+    dest: "{{ bambooagent_jar_filename_full_path }}"
   when:
     - (bamboo_java_jar_file | default())
-    - ansible_os_family!="Windows"
+    - ansible_os_family != "Windows"
 
 - name: '[BAMBOO][WIN] Copy bamboo jar into destination from existing file'
   win_copy:
     src: "{{ bamboo_java_jar_file }}"
-    dest: "{{ bambooagent_install_root }}/{{ bamboo_java_jar_file | basename }}"
+    dest: "{{ bambooagent_jar_filename_full_path }}"
   when:
     - (bamboo_java_jar_file | default())
     - ansible_os_family == "Windows"
 
 # Fetches the .jar
-- name: '[BAMBOO] Copy bamboo jar into destination from server'
+- name: '[BAMBOO] Fetches bamboo-agent jar into destination from server'
   get_url:
-    url: "{{ bamboo_server_url }}/agentServer/agentInstaller/{{ bamboo_java_jar_file | basename }}"
-    dest: "{{ bambooagent_install_root }}/{{ bamboo_java_jar_file | basename }}"
+    url: "{{ bamboo_server_url }}/agentServer/agentInstaller/{{ bambooagent_jar_filename | basename }}"
+    dest: "{{ bambooagent_jar_filename_full_path }}"
     validate_certs: True
   when:
     - not (bamboo_java_jar_file | default())
     - ansible_os_family != "Windows"
 
-- name: '[BAMBOO][WIN] Copy bamboo jar into destination from server'
+- name: '[BAMBOO] Fetches bamboo-agent jar into destination from server'
   win_get_url:
-    url: "{{ bamboo_server_url }}/agentServer/agentInstaller/{{ bamboo_java_jar_file | basename }}"
-    dest: "{{ bambooagent_install_root }}/{{ bamboo_java_jar_file | basename }}"
+    url: "{{ bamboo_server_url }}/agentServer/agentInstaller/{{ bambooagent_jar_filename | basename }}"
+    dest: "{{ bambooagent_jar_filename_full_path }}"
     validate_certs: True
   when:
     - not (bamboo_java_jar_file | default())
