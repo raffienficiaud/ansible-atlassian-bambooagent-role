@@ -1,0 +1,80 @@
+# this script is extracting the UUID of the remote agent to get a comprehensive list
+# of the currently running instances.
+# this eases the management of the licenses
+
+#
+# Windows machines
+#
+
+- name: Retrieves the agent UUID
+  block:
+  - name: '[BAMBOO] Postinstall check exists bamboo-agent.cfg.xml'
+    win_stat:
+      path: "{{ bambooagent_agent_root }}\\bamboo-agent.cfg.xml"
+    register: stat_bamboocfg_exists_windows
+    tags:
+      - bamboo_agent_uuid
+
+  - name: '[BAMBOO] read remote configuration file'
+    slurp:
+      src: "{{ bambooagent_agent_root }}\\bamboo-agent.cfg.xml"
+    when: stat_bamboocfg_exists_windows.stat.exists
+    register: bamboocfg_content_remote_windows
+    tags:
+      - bamboo_agent_uuid
+
+  # block chomping  with stripping (">-") required to
+  # - remove intermediate "\n"
+  # - remove final "\n"
+  - name: '[BAMBOO] read remote UUID from agent configuration'
+    set_fact:
+      bamboo_agent_UUID: >-
+        {{ (bamboocfg_content_remote_windows['content'] | b64decode)
+          | regex_findall("<agentUuid>(.+)</agentUuid>", multiline=True, ignorecase=True)
+          | first
+          | trim }}
+    when: stat_bamboocfg_exists_windows.stat.exists
+    tags:
+      - bamboo_agent_uuid
+
+  when:
+    - ansible_os_family == "Windows"
+
+
+#
+# Non windows machines
+#
+
+- name: Retrieves the agent UUID
+  block:
+  - name: '[BAMBOO] Postinstall check exists bamboo-agent.cfg.xml'
+    stat:
+      path: "{{ bambooagent_agent_root }}/bamboo-agent.cfg.xml"
+    register: stat_bamboocfg_exists_non_windows
+    tags:
+      - bamboo_agent_uuid
+
+  - name: '[BAMBOO] read remote configuration file'
+    slurp:
+      src: "{{ bambooagent_agent_root }}/bamboo-agent.cfg.xml"
+    when: stat_bamboocfg_exists_non_windows.stat.exists
+    register: bamboocfg_content_remote_non_windows
+    tags:
+      - bamboo_agent_uuid
+
+  # block chomping  with stripping (">-") required to
+  # - remove intermediate "\n"
+  # - remove final "\n"
+  - name: '[BAMBOO] read remote UUID from agent configuration'
+    set_fact:
+      bamboo_agent_UUID: >-
+        {{ (bamboocfg_content_remote_non_windows['content'] | b64decode)
+          | regex_findall("<agentUuid>(.+)</agentUuid>", multiline=True, ignorecase=True)
+          | first
+          | trim }}
+    when: stat_bamboocfg_exists_non_windows.stat.exists
+    tags:
+      - bamboo_agent_uuid
+
+  when:
+    - ansible_os_family != "Windows"

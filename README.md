@@ -144,6 +144,30 @@ indicating in the list `bamboo_capabilities_to_remove` the names of the capabili
 
 ```
 
+### Getting the agent UUID
+
+The role contains a dedicated helper to retrieve the agent's `UUID`, which makes it easier
+to manage the approved agents in the Bamboo agents' admin view. This can be used like the following
+example, which will fill the variable `bamboo_agent_UUID`.
+
+```
+- hosts: my-bamboo-agents
+  vars:
+    - bambooagent_agent_root: "the specified agent root or the default"
+
+  tasks:
+    - name: Retrieves Agent UUID
+      include_role:
+        name: atlassian-bambooagent-role
+        tasks_from: get_agent_uuid
+      tags: ['never', 'bamboo_agent_uuid']
+
+    - name: Print agent UUID
+      debug:
+        var: bamboo_agent_UUID
+      tags: ['never', 'bamboo_agent_uuid']
+```
+
 ### HTTPS certificate to the service
 The certificate should be in the variable `certificate_files` (a list of certificates which are alias/filename pairs) like the following:
 
