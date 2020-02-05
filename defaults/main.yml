@@ -30,3 +30,6 @@ bambooagent_additional_environment: []
 
 # Default capability of the agent
 bamboo_capabilities: {}
+
+# Bamboo remote agent security token
+bamboo_agent_security_token: ''

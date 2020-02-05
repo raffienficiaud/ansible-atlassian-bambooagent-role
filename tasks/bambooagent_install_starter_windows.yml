@@ -15,7 +15,14 @@
       state: absent
 
   - name: "[BAMBOO][WIN] installing the service"
-    win_command: "java -Djava.io.tmpdir=\"{{ bambooagent_agent_root }}/tmpdir\" -Dbamboo.home=\"{{ bambooagent_agent_root }}\" -jar {{ bambooagent_install_root }}/{{ bamboo_java_jar_file | basename }} {{ bamboo_server_url }}/agentServer/ installntservice"
+    win_command: >
+        java
+        -Djava.io.tmpdir="{{ bambooagent_agent_root }}/tmpdir"
+        -Dbamboo.home="{{ bambooagent_agent_root }}"
+        -jar {{ bambooagent_install_root }}/{{ bamboo_java_jar_file | basename }}
+        "{{ bamboo_server_url }}/agentServer/" 
+        {{ bamboo_agent_security_token | ternary('-t ' + bamboo_agent_security_token,'') }}
+        installntservice
     notify:
       - restart bambooagent
 

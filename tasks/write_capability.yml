@@ -51,7 +51,13 @@
     dest: "{{ bambooagent_capability_file }}"
     state: present
     regexp: "^{{ item.key.strip() | replace('\\n', '') | replace('\\r', '') }}="
-    line: "{{ item.key.strip() | replace('\\n', '') | replace('\\r', '') }}={{ item.value.strip() | replace('\\n', '') | replace('\\r', '') | regex_replace('(?<!\\\\)\\\\(?!\\\\)', '\\\\\\\\') }}"
+    line: >-
+       {{ item.key.strip()
+         | replace('\\n', '')
+         | replace('\\r', '') }}={{ item.value.strip()
+                                    | replace('\\n', '')
+                                    | replace('\\r', '')
+                                    | regex_replace('(?<!\\)\\(?!\\)', '\\\\') }}
   loop: "{{ bamboo_capabilities | dict2items }}"
   tags:
   - capability:write

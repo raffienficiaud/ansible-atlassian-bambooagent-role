@@ -34,11 +34,11 @@
 - block:
   - name: '[BAMBOOAGENT] certificate to remote'
     copy:
-      src="{{ item.file }}"
-      dest=/usr/local/share/ca-certificates/{{ item.file | basename }}
-      owner=root
-      group=root
-      mode=0644
+      src: "{{ item.file }}"
+      dest: /usr/local/share/ca-certificates/{{ item.file | basename }}
+      owner: root
+      group: root
+      mode: 0644
     with_items: "{{ certificate_files }}"
 
   - name: '[BAMBOOAGENT] certificates registration'
