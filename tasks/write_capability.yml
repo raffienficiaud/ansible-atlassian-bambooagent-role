@@ -10,6 +10,27 @@
   tags:
   - capability
 
+- name: '[BAMBOO] Check if the agent file exists'
+  stat:
+    path: "{{ bambooagent_capability_file }}"
+  register: stat_result
+
+- name: Create root directory if file does not exist
+  file:
+    path: "{{ bambooagent_capability_file | dirname }}"
+    state: directory
+    recurse: yes
+    owner: "{{ bambooagent_user }}"
+    group: "{{ bambooagent_group }}"
+    mode: 0755
+  when: not stat_result.stat.exists
+
+- name: Create the agent file, if it doesnt exist already
+  file:
+    path: "{{ bambooagent_capability_file }}"
+    state: touch
+  when: not stat_result.stat.exists
+
 - name: '[BAMBOO] Flush the capabilities into the agents file'
   lineinfile:
     dest: "{{ bambooagent_capability_file }}"
