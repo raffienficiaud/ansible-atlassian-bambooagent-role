@@ -6,6 +6,7 @@
   service:
     name: "{{ bambooagent_service_name }}"
     enabled: yes
+    state: reloaded
 
 - name: restart bambooagent osx
   shell: >-
