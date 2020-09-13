@@ -3,6 +3,15 @@
      path: "{{ bambooagent_capability_file | dirname }}"
      state: directory
      owner: "{{ bambooagent_user }}"
+     mode: "u+rwx,g+rx,o+rx"
+  when:
+  - ansible_os_family != "Windows"
+
+- name: '[BAMBOO] capability file creation'
+  file:
+     path: "{{ bambooagent_capability_file }}"
+     state: touch
+     mode: "u+r,g+r,o+r"
   when:
   - ansible_os_family != "Windows"
 
@@ -11,6 +20,7 @@
      path: "{{ bambooagent_capability_file | dirname }}"
      state: directory
      owner: "{{ bambooagent_user }}"
+     mode: "u+rwx,g+rx,o+rx"
   when:
   - ansible_os_family == "Windows"
 
@@ -19,17 +29,9 @@
      path: "{{ bambooagent_capability_file }}"
      state: touch
      owner: "{{ bambooagent_user }}"
+     mode: "u+rw,g+r"
   when:
   - ansible_os_family == "Windows"
-
-
-- name: '[BAMBOO] capability file creation'
-  file:
-     path: "{{ bambooagent_capability_file }}"
-     state: touch
-     mode: 0444
-  when:
-  - ansible_os_family != "Windows"
 
 - name: '[BAMBOO] capability file creation'
   win_acl:

@@ -1,6 +1,7 @@
 galaxy_info:
+  role_name: atlassian_bambooagent_role
   author: Raffi Enficiaud
-  description: Installs Atlassian Bamboo remote agent on a target machine
+  description: Installs Atlassian Bamboo remote agent on a target machine, platform agnostic
 
   license: BSD
 

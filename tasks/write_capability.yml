@@ -22,13 +22,14 @@
     recurse: yes
     owner: "{{ bambooagent_user }}"
     group: "{{ bambooagent_group }}"
-    mode: 0755
+    mode: "u+rwx,g+rx,o+rx"
   when: not stat_result.stat.exists
 
 - name: Create the agent file, if it doesnt exist already
   file:
     path: "{{ bambooagent_capability_file }}"
     state: touch
+    mode: "u+r,g+r,o+r"
   when: not stat_result.stat.exists
 
 - name: '[BAMBOO] Flush the capabilities into the agents file'

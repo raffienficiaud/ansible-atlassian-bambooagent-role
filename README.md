@@ -43,6 +43,7 @@ The following variable need to be set for the role.
 | `bambooagentjava_additional_options`| <ul><li>`-Djava.awt.headless=true`</li><li>`-Dbamboo.home={{ bambooagent_agent_root }}`</li></ul> |additional options passed to the Java virtual machine. This should be a list|
 | `bambooagent_additional_environment`| `[]` (empty list) | additional environment variables set before running the bamboo agent (eg. `CUDA_VISIBLE_DEVICES=1`). This should be a list |
 |`certificate_files`| `[]` | Certificates definition list (see below).|
+|`bamboo_verify_certificates`| `True` | verifies the server certificates when fetching the JAR file from it. |
 
 ### Java
 The version of the agent should work well with the installed Java. For instance,version 5.11 of the Bamboo agent require Java 8. The `JAVA_HOME` is set automatically on OSX during agent's startup.
@@ -66,7 +67,7 @@ It is possible to update the capabilities first by reading those from disk, usin
 pre_tasks:
     - name: Reading the agent capability file
       include_role:
-        name: atlassian-bambooagent-role
+        name: atlassian_bambooagent_role
         tasks_from: read_capability
 ```
 
@@ -76,7 +77,7 @@ and then write them on disk as eg. a `post_task`:
 post_tasks:
   - name: Updating the agent capability file
     include_role:
-      name: atlassian-bambooagent-role
+      name: atlassian_bambooagent_role
       tasks_from: write_capability
 ```
 
@@ -95,14 +96,14 @@ A typical play in a playbook would look like this:
     # this will read the capability file if it exist
     - name: Reading the agent capability file
       include_role:
-        name: atlassian-bambooagent-role
+        name: atlassian_bambooagent_role
         tasks_from: read_capability
 
   post_tasks:
     # this will update the capability file and create it if needed
     - name: Updating the agent capability file
       include_role:
-        name: atlassian-bambooagent-role
+        name: atlassian_bambooagent_role
         tasks_from: write_capability
 
   tasks:
@@ -139,7 +140,7 @@ indicating in the list `bamboo_capabilities_to_remove` the names of the capabili
     # this will update the capability file and create it if needed
     - name: Updating the agent capability file
       include_role:
-        name: atlassian-bambooagent-role
+        name: atlassian_bambooagent_role
         tasks_from: write_capability
 
 ```
@@ -158,7 +159,7 @@ example, which will fill the variable `bamboo_agent_UUID`.
   tasks:
     - name: Retrieves Agent UUID
       include_role:
-        name: atlassian-bambooagent-role
+        name: atlassian_bambooagent_role
         tasks_from: get_agent_uuid
       tags: ['never', 'bamboo_agent_uuid']
 
@@ -200,7 +201,7 @@ An example of changing the build folder would be this:
   tasks:
     - name: Updating the agents' configuration
       include_role:
-        name: atlassian-bambooagent-role
+        name: atlassian_bambooagent_role
         tasks_from: update_agent_configuration
       vars:
         bamboo_agent_name: "new-name-for-the-agent"
@@ -270,20 +271,20 @@ Example Playbook
     # Reads capabilities if it already exists, otherwise returns an empty dict
     - name: Reading the agent capability file
       include_role:
-        name: atlassian-bambooagent-role
+        name: atlassian_bambooagent_role
         tasks_from: read_capability
 
   post_tasks:
     # Writes the capabilities back to file
     - name: Updates agent capabilities
       include_role:
-        name: atlassian-bambooagent-role
+        name: atlassian_bambooagent_role
         tasks_from: write_capability
 
   roles:
     # This installs the bamboo agent, and overrides the variables
     - name: installing the bamboo agent
-      role: atlassian-bambooagent-role
+      role: atlassian_bambooagent_role
       vars:
         bambooagent_user: "bamboo_service_user"
         bambooagent_group: "bamboo_service_group"
@@ -334,3 +335,15 @@ Author Information
 ------------------
 
 Any comments on the Ansible, PR or bug reports are welcome from the corresponding Github project.
+
+Change log
+----------
+
+## 0.1
+* first official version (not really, but previous releases did not have changelogs)
+* Change of role name to `atlassian_bambooagent_role` to follow [those guidelines](https://docs.ansible.com/ansible/devel/dev_guide/developing_collections.html#roles-directory)
+* additional linting
+* new option `bamboo_verify_certificates` to avoid checking the server certificate when fetching the JAR from Bamboo. This is
+  useful on OSX only (see [here](https://stackoverflow.com/a/56031239/1617295)) when the server has a public certificate.
+  In case the server uses its own CA, that CA is already installed system wide by the role.
+* bug fix on Windows when fetching the JAR from the Bamboo server

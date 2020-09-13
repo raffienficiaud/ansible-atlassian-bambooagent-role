@@ -37,6 +37,7 @@
       state: directory
       owner: "{{ bambooagent_user }}"
       group: "{{ bambooagent_group }}"
+      mode: "u+rw,g+r"
     when: not no_user
 
   - name: '[BAMBOOAGENT] Creating non-existing user "{{ bambooagent_user }}"'
@@ -54,6 +55,7 @@
       state: directory
       owner: "{{ bambooagent_user }}"
       group: "{{ bambooagent_group }}"
+      mode: "u+rw,g+r"
     when: no_user
 
   when: ansible_distribution == "Ubuntu"
