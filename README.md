@@ -43,6 +43,7 @@ The following variable need to be set for the role.
 | `bambooagentjava_additional_options`| <ul><li>`-Djava.awt.headless=true`</li><li>`-Dbamboo.home={{ bambooagent_agent_root }}`</li></ul> |additional options passed to the Java virtual machine. This should be a list|
 | `bambooagent_additional_environment`| `[]` (empty list) | additional environment variables set before running the bamboo agent (eg. `CUDA_VISIBLE_DEVICES=1`). This should be a list |
 |`certificate_files`| `[]` | Certificates definition list (see below).|
+|`bamboo_verify_certificates`| `True` | verifies the server certificates when fetching the JAR file from it. |
 
 ### Java
 The version of the agent should work well with the installed Java. For instance,version 5.11 of the Bamboo agent require Java 8. The `JAVA_HOME` is set automatically on OSX during agent's startup.

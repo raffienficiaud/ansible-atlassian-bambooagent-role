@@ -33,3 +33,6 @@ bamboo_capabilities: {}
 
 # Bamboo remote agent security token
 bamboo_agent_security_token: ''
+
+# Indicates that fetching from server should verify the certificates
+bamboo_verify_certificates: true
