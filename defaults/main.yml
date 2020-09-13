@@ -16,7 +16,7 @@ bambooagent_capability_file: "{{ bambooagent_agent_root }}/bin/bamboo-capabiliti
 bambooagent_jar_filename: atlassian-bamboo-agent-installer-{{ bambooagent_version }}.jar
 
 # Location of the Bamboo jar file on the remote
-bambooagent_jar_filename_full_path: "{{ bambooagent_install_root }}/{{bambooagent_jar_filename}}"
+bambooagent_jar_filename_full_path: "{{ bambooagent_install_root }}/{{ bambooagent_jar_filename }}"
 
 
 # additional options passed to Java
