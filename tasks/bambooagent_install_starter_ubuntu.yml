@@ -10,13 +10,14 @@
       dest: "/etc/init.d/{{ bambooagent_service_name }}"
       owner: root
       group: root
-      mode: 0755
+      mode: "u+rwx,g+rx,o+rx"
 
   - name: "[BAMBOO][UBUNTU] Creating the log file"
     file:
       path: "/var/log/{{ bambooagent_service_name }}.log"
       state: touch
       owner: root
+      mode: "u+rw"
 
     notify:
       - register init.d

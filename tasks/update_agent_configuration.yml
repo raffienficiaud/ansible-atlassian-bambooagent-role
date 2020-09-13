@@ -40,6 +40,7 @@
     state: directory
     path: "{{ bamboo_build_folder }}"
     owner: "{{ bambooagent_user }}"
+    mode: "u+rwx,g+rx,o+rx"
   when:
     - ansible_os_family == "Windows"
     - bamboo_build_folder.strip()
@@ -83,6 +84,7 @@
     state: directory
     path: "{{ bamboo_build_folder }}"
     owner: "{{ bambooagent_user }}"
+    mode: "u+rwx,g+rx,o+rx"
   when:
     - ansible_os_family != "Windows"
     - bamboo_build_folder.strip()

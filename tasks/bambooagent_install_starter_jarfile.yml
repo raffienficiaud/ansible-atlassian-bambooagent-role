@@ -14,9 +14,9 @@
 
 - name: '[BAMBOO] Creating the installation folder'
   win_file:
-     path: "{{ bambooagent_install_root }}"
-     state: directory
-     owner: "{{ bambooagent_user }}"
+    path: "{{ bambooagent_install_root }}"
+    state: directory
+    owner: "{{ bambooagent_user }}"
     group: "{{ bambooagent_group }}"
   when:
     - ansible_os_family == "Windows"
@@ -62,7 +62,10 @@
   win_get_url:
     url: "{{ bamboo_server_url }}/agentServer/agentInstaller/{{ bambooagent_jar_filename | basename }}"
     dest: "{{ bambooagent_jar_filename_full_path }}"
-    validate_certs: True
+    owner: "{{ bambooagent_user }}"
+    group: "{{ bambooagent_group }}"
+    mode: "u+rw,g+r"
+    validate_certs: "{{ bamboo_verify_certificates }}"
   when:
     - not (bamboo_java_jar_file | default())
     - ansible_os_family == "Windows"
