@@ -8,10 +8,20 @@
       name: bamboo-remote-agent
       state: stopped
     ignore_errors: True
+  - name: "[BAMBOO][WIN] stopping previous service '{{ bambooagent_service_name }}'"
+    win_service:
+      name: "{{ bambooagent_service_name }}"
+      state: stopped
+    ignore_errors: True
 
   - name: "[BAMBOO][WIN] removing previous service 'bamboo-remote-agent'"
     win_service:
       name: bamboo-remote-agent
+      state: absent
+
+  - name: "[BAMBOO][WIN] removing previous service '{{ bambooagent_service_name }}'"
+    win_service:
+      name: "{{ bambooagent_service_name }}"
       state: absent
 
   - name: "[BAMBOO][WIN] installing the service"
@@ -23,8 +33,32 @@
         "{{ bamboo_server_url }}/agentServer/"
         {{ bamboo_agent_security_token | ternary('-t ' + bamboo_agent_security_token,'') }}
         installntservice
+
+  - name: "[BAMBOO][WIN] removing the service with the default name"
+    win_shell: "{{ bambooagent_agent_root }}/bin/UninstallBambooAgent-NT.bat"
+    args:
+      executable: cmd
+
+  - name: '[BAMBOO][WIN] fix the name of the windows service'
+    win_lineinfile:
+      dest: "{{ bambooagent_agent_root }}/conf/wrapper.conf"
+      state: present
+      regexp: "^wrapper.{{ item.name }}="
+      line: "wrapper.{{ item.name }}={{ item.value }}"
+    loop:
+      - name: 'name'
+        value: "{{ bambooagent_service_name }}"
+      - name: 'displayname'
+        value: "{{ bambooagent_service_name }}"
+      - name: 'description'
+        value: "Bamboo remote agent {{ bambooagent_service_name }} (ansible managed)"
     notify:
       - restart bambooagent
+
+  - name: "[BAMBOO][WIN] installing the service with the new name"
+    win_shell: "{{ bambooagent_agent_root }}/bin/InstallBambooAgent-NT.bat"
+    args:
+        executable: cmd
 
   - name: "[BAMBOO][WIN] fixing build folder permissions"
     win_acl:
@@ -34,16 +68,14 @@
       type: allow
       state: present
 
-  - name: "[BAMBOO][WIN] configuring the service 'bamboo-remote-agent'"
+  - name: "[BAMBOO][WIN] configuring the service '{{ bambooagent_service_name }}'"
     win_service:
-      name: bamboo-remote-agent
+      name: "{{ bambooagent_service_name }}"
       start_mode: auto
       username: ".\\{{ bambooagent_user }}"
       password: "{{ lookup('password', 'windows/' + inventory_hostname + '/bambooagent length=15') }}"
 
   rescue:
-    - name: print error message
-      debug:
-        msg: 'Error caught during the installation of the bamboo startup'
     - name: fail the task
-      win_command: "/bin/false"
+      fail:
+        msg: 'Error caught during the installation of the bamboo startup'
