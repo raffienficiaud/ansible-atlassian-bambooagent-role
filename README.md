@@ -340,10 +340,13 @@ Change log
 ----------
 
 ## 0.1
-* first official version (not really, but previous releases did not have changelogs)
+* first official version (not really, but previous releases did not have change-logs)
 * Change of role name to `atlassian_bambooagent_role` to follow [those guidelines](https://docs.ansible.com/ansible/devel/dev_guide/developing_collections.html#roles-directory)
 * additional linting
 * new option `bamboo_verify_certificates` to avoid checking the server certificate when fetching the JAR from Bamboo. This is
   useful on OSX only (see [here](https://stackoverflow.com/a/56031239/1617295)) when the server has a public certificate.
   In case the server uses its own CA, that CA is already installed system wide by the role.
+* now the installed service on Windows is taken from the variable `bambooagent_service_name` (and not the default `bamboo-remote-agent`). This
+  makes it possible to run several agents on the same Windows machine.
 * bug fix on Windows when fetching the JAR from the Bamboo server
+* bug fix when writing the capabilities (Windows vs the rest of the world)

@@ -10,9 +10,13 @@
   tags:
   - capability
 
+# non windows
+
 - name: '[BAMBOO] Check if the agent file exists'
   stat:
     path: "{{ bambooagent_capability_file }}"
+  when:
+    - ansible_os_family != "Windows"
   register: stat_result
 
 - name: Create root directory if file does not exist
@@ -23,14 +27,18 @@
     owner: "{{ bambooagent_user }}"
     group: "{{ bambooagent_group }}"
     mode: "u+rwx,g+rx,o+rx"
-  when: not stat_result.stat.exists
+  when:
+    - ansible_os_family != "Windows"
+    - not stat_result.stat.exists
 
 - name: Create the agent file, if it doesnt exist already
   file:
     path: "{{ bambooagent_capability_file }}"
     state: touch
     mode: "u+r,g+r,o+r"
-  when: not stat_result.stat.exists
+  when:
+    - ansible_os_family != "Windows"
+    - not stat_result.stat.exists
 
 - name: '[BAMBOO] Flush the capabilities into the agents file'
   lineinfile:
@@ -65,6 +73,26 @@
   when:
     - ansible_os_family != "Windows"
 
+# windows
+
+- name: '[BAMBOO] Check if the agent file exists'
+  win_stat:
+    path: "{{ bambooagent_capability_file }}"
+  when:
+    - ansible_os_family == "Windows"
+  register: win_stat_result
+
+- name: Create root directory if file does not exist
+  win_file:
+    path: "{{ bambooagent_capability_file | dirname }}"
+    state: directory
+    recurse: yes
+    owner: "{{ bambooagent_user }}"
+    group: "{{ bambooagent_group }}"
+    mode: "u+rwx,g+rw,o+rx"
+  when:
+    - ansible_os_family == "Windows"
+    - not win_stat_result.stat.exists
 
 
 # what a nightmare to escape \ with YAML...

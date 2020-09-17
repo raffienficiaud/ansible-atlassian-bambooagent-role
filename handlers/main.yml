@@ -25,3 +25,11 @@
   listen: "restart bambooagent"
   when:
     - ansible_distribution == "Ubuntu"
+
+- name: restart bambooagent windows
+  win_service:
+    name: "{{ bambooagent_service_name }}"
+    state: restarted
+  listen: "restart bambooagent"
+  when:
+    - ansible_os_family == "Windows"
