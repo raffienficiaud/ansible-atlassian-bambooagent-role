@@ -100,6 +100,7 @@
   win_lineinfile:
     dest: "{{ bambooagent_capability_file }}"
     state: present
+    create: yes
     regexp: "^{{ item.key.strip() | replace('\\n', '') | replace('\\r', '') }}="
     line: >-
        {{ item.key.strip()
