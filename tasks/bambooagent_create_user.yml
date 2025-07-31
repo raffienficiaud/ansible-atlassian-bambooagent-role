@@ -166,7 +166,7 @@
 
   when: ansible_os_family == "Windows"
   vars:
-    - bambooagent_passwd: "{{ lookup('password', 'windows/' + inventory_hostname + '/bambooagent length=15') }}"
+    bambooagent_passwd: "{{ lookup('password', 'windows/' + inventory_hostname + '/bambooagent length=15') }}"
 
 #
 # hides the bamboo agent from the login screen
